@@ -22,6 +22,9 @@
     <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/glassmorphism.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/animations.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/stats-cards.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern-components.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/utilities.css') }}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -37,8 +40,8 @@
     <nav class="sidebar glass-dark" id="sidebar">
         <div class="sidebar-header">
             <div class="logo-container">
-                <i class="bi bi-calendar3 logo-icon"></i>
-                <span class="logo-text">TimeTableGen</span>
+                <i class="bi bi-calendar-check logo-icon"></i>
+                <span class="logo-text">TimetableAI</span>
             </div>
             <button class="btn-toggle-sidebar d-lg-none" id="toggleSidebar">
                 <i class="bi bi-x-lg"></i>
@@ -104,7 +107,7 @@
                 
                 <li class="nav-item">
                     <a href="{{ url_for('timetable.generate') }}" class="nav-link {% if request.endpoint == 'timetable.generate' %}active{% endif %}">
-                        <i class="bi bi-magic"></i>
+                        <i class="bi bi-stars"></i>
                         <span>Generate Timetable</span>
                     </a>
                 </li>
@@ -130,12 +133,12 @@
         <div class="sidebar-footer">
             <div class="theme-toggle">
                 <button class="btn btn-sm btn-glass" id="themeToggle">
-                    <i class="bi bi-moon-fill"></i>
+                    <i class="bi bi-moon-stars-fill"></i>
                     <span>Dark Mode</span>
                 </button>
             </div>
             <div class="version-info">
-                <small>NEP 2020 Compliant v1.0</small>
+                <small>NEP 2020 • v1.0</small>
             </div>
         </div>
     </nav>
@@ -193,8 +196,8 @@
         <!-- Footer -->
         <footer class="main-footer glass">
             <div class="footer-content">
-                <span>&copy; 2024 Timetable Generator - NEP 2020 Compliant</span>
-                <span>B.Tech CSE Curriculum</span>
+                <span>&copy; 2024 TimetableAI - NEP 2020 Compliant</span>
+                <span>Powered by Hybrid GA+CSP Algorithm</span>
             </div>
         </footer>
     </main>

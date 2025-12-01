@@ -104,7 +104,7 @@ function initThemeToggle() {
         if (themeToggle) {
             themeToggle.innerHTML = isDark 
                 ? '<i class="bi bi-sun-fill"></i><span>Light Mode</span>'
-                : '<i class="bi bi-moon-fill"></i><span>Dark Mode</span>';
+                : '<i class="bi bi-moon-stars-fill"></i><span>Dark Mode</span>';
         }
     }
 }
