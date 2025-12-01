@@ -47,62 +47,58 @@
     </div>
 </div>
 
-<!-- Section Timetable -->
-<div class="glass-card mb-4" data-aos="fade-up" data-aos-delay="100" id="sectionTimetable">
-    <div class="table-responsive">
-        <table class="table table-bordered timetable-table mb-0">
+<!-- Section Timetable - Landscape View -->
+<div class="glass-card mb-4 landscape-timetable-container" data-aos="fade-up" data-aos-delay="100" id="sectionTimetable">
+    <div class="table-responsive landscape-scroll">
+        <table class="table table-bordered timetable-table mb-0 landscape-table">
             <thead class="bg-primary text-white">
                 <tr>
-                    <th class="time-header">Time</th>
-                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
-                    <th class="day-header">{{ day }}</th>
+                    <th class="day-col-header">Day/Period</th>
+                    {% for period in range(1, 9) %}
+                    <th class="period-header">P{{ period }}</th>
+                    {% endfor %}
+                </tr>
+                <tr class="time-row-header">
+                    <th class="day-col-header">Time</th>
+                    {% for period in range(1, 9) %}
+                    {% set period_times = {
+                    1: '09:10-10:00',
+                    2: '10:00-10:50',
+                    3: '10:50-11:40',
+                    4: '11:40-12:30',
+                    5: '13:30-14:20',
+                    6: '14:20-15:10',
+                    7: '15:10-16:00',
+                    8: '16:00-16:50'
+                    } %}
+                    <th class="time-header-cell">{{ period_times[period] }}</th>
                     {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for period in range(1, 9) %}
-                {% set period_times = {
-                1: '09:10 - 10:00',
-                2: '10:00 - 10:50',
-                3: '10:50 - 11:40',
-                4: '11:40 - 12:30',
-                5: '01:30 - 02:20',
-                6: '02:20 - 03:10',
-                7: '03:10 - 04:00',
-                8: '04:00 - 04:50'
-                } %}
-
-                {% if period == 5 %}
-                <tr class="lunch-break">
-                    <td colspan="6" class="text-center">
-                        <i class="fas fa-utensils me-2"></i>Lunch Break (12:30 - 01:30)
-                    </td>
-                </tr>
-                {% endif %}
-
+                {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
                 <tr>
-                    <td class="time-cell">
-                        <div class="period-num">P{{ period }}</div>
-                        <div class="time-range">{{ period_times[period] }}</div>
-                    </td>
-
-                    {% for day_code in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
-                    {% set slot_entries = entries|selectattr('timeslot.day', 'equalto',
-                    day_code)|selectattr('timeslot.period', 'equalto', period)|list %}
-
+                    <td class="day-cell">{{ day_name }}</td>
+                    {% for period in range(1, 9) %}
+                    {% set slot_entries = entries
+                        |selectattr('timeslot.day', 'equalto', day_name)
+                        |selectattr('timeslot.period', 'equalto', period)
+                        |list %}
                     <td class="slot-cell {% if slot_entries %}has-class{% endif %}">
                         {% for entry in slot_entries %}
-                        <div class="class-card {{ 'lab-class' if entry.course.is_lab else 'lecture-class' }}">
-                            <div class="course-code">{{ entry.course.code }}</div>
-                            <div class="course-name">{{ entry.course.name|truncate(25) }}</div>
-                            <div class="class-details">
-                                <span><i class="fas fa-user me-1"></i>{{ entry.faculty.name|truncate(15) }}</span>
-                                <span><i class="fas fa-door-open me-1"></i>{{ entry.room.code }}</span>
+                        <div class="landscape-class-entry {{ 'lab-class' if entry.faculty_course.course.is_lab else 'lecture-class' }}">
+                            <div class="landscape-course-code">
+                                {{ entry.faculty_course.course.code if entry.faculty_course and entry.faculty_course.course else '' }}
+                                {% if entry.batch %}({{ entry.batch.name }}){% endif %}
                             </div>
-                            {% if entry.batch %}
-                            <span class="batch-badge">{{ entry.batch.name }}</span>
-                            {% endif %}
+                            <div class="landscape-faculty-code">
+                                {{ entry.faculty_course.faculty.faculty_id if entry.faculty_course and entry.faculty_course.faculty else '' }}
+                            </div>
+                            <div class="landscape-room-code">
+                                {{ entry.room.room_id if entry.room else '' }}
+                            </div>
                         </div>
+                        {% if not loop.last %}<hr class="landscape-separator">{% endif %}
                         {% endfor %}
                     </td>
                     {% endfor %}
@@ -113,63 +109,87 @@
     </div>
 </div>
 
-<!-- Batch-wise Timetables -->
+<!-- Batch-wise Timetables - Landscape View -->
 {% if section.batches %}
 <div id="batchTimetables" style="display: none;">
     {% for batch in section.batches %}
-    <div class="glass-card mb-4" data-aos="fade-up">
-        <div class="card-header bg-transparent">
+    <div class="glass-card mb-4 landscape-timetable-container" data-aos="fade-up">
+        <div class="card-header bg-transparent mb-3">
             <h5 class="mb-0">
                 <i class="fas fa-layer-group me-2 text-success"></i>
                 {{ batch.name }} - Lab Schedule
             </h5>
         </div>
-        <div class="table-responsive">
-            <table class="table table-bordered timetable-table mb-0">
+        <div class="table-responsive landscape-scroll">
+            <table class="table table-bordered timetable-table mb-0 landscape-table">
                 <thead class="bg-success text-white">
                     <tr>
-                        <th class="time-header">Time</th>
-                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
-                        <th class="day-header">{{ day }}</th>
+                        <th class="day-col-header">Day/Period</th>
+                        {% for period in range(1, 9) %}
+                        <th class="period-header">P{{ period }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr class="time-row-header">
+                        <th class="day-col-header">Time</th>
+                        {% for period in range(1, 9) %}
+                        {% set period_times = {
+                        1: '09:10-10:00',
+                        2: '10:00-10:50',
+                        3: '10:50-11:40',
+                        4: '11:40-12:30',
+                        5: '13:30-14:20',
+                        6: '14:20-15:10',
+                        7: '15:10-16:00',
+                        8: '16:00-16:50'
+                        } %}
+                        <th class="time-header-cell">{{ period_times[period] }}</th>
                         {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% for period in range(1, 9) %}
-                    {% if period == 5 %}
-                    <tr class="lunch-break">
-                        <td colspan="6" class="text-center">
-                            <i class="fas fa-utensils me-2"></i>Lunch Break
-                        </td>
-                    </tr>
-                    {% endif %}
-
+                    {% for day_name in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
                     <tr>
-                        <td class="time-cell">
-                            <div class="period-num">P{{ period }}</div>
-                        </td>
-
-                        {% for day_code in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
-                        {% set batch_entries = entries|selectattr('timeslot.day', 'equalto',
-                        day_code)|selectattr('timeslot.period', 'equalto', period)|selectattr('batch_id', 'equalto',
-                        batch.id)|list %}
-                        {% set section_entries = entries|selectattr('timeslot.day', 'equalto',
-                        day_code)|selectattr('timeslot.period', 'equalto', period)|rejectattr('batch_id')|list %}
-
-                        <td class="slot-cell">
+                        <td class="day-cell">{{ day_name }}</td>
+                        {% for period in range(1, 9) %}
+                        {% set batch_entries = entries
+                            |selectattr('timeslot.day', 'equalto', day_name)
+                            |selectattr('timeslot.period', 'equalto', period)
+                            |selectattr('batch_id', 'equalto', batch.id)
+                            |list %}
+                        {% set section_entries = entries
+                            |selectattr('timeslot.day', 'equalto', day_name)
+                            |selectattr('timeslot.period', 'equalto', period)
+                            |rejectattr('batch_id')
+                            |list %}
+                        <td class="slot-cell {% if batch_entries or section_entries %}has-class{% endif %}">
                             {% for entry in batch_entries %}
-                            <div class="class-card lab-class">
-                                <div class="course-code">{{ entry.course.code }}</div>
-                                <div class="course-name">{{ entry.course.name|truncate(20) }}</div>
-                                <div class="class-details">
-                                    <span>{{ entry.room.code }}</span>
+                            <div class="landscape-class-entry lab-class">
+                                <div class="landscape-course-code">
+                                    {{ entry.faculty_course.course.code if entry.faculty_course and entry.faculty_course.course else '' }}
+                                    ({{ batch.name }})
+                                </div>
+                                <div class="landscape-faculty-code">
+                                    {{ entry.faculty_course.faculty.faculty_id if entry.faculty_course and entry.faculty_course.faculty else '' }}
+                                </div>
+                                <div class="landscape-room-code">
+                                    {{ entry.room.room_id if entry.room else '' }}
                                 </div>
                             </div>
+                            {% if not loop.last %}<hr class="landscape-separator">{% endif %}
                             {% endfor %}
                             {% for entry in section_entries %}
-                            <div class="class-card lecture-class">
-                                <div class="course-code">{{ entry.course.code }}</div>
+                            <div class="landscape-class-entry lecture-class">
+                                <div class="landscape-course-code">
+                                    {{ entry.faculty_course.course.code if entry.faculty_course and entry.faculty_course.course else '' }}
+                                </div>
+                                <div class="landscape-faculty-code">
+                                    {{ entry.faculty_course.faculty.faculty_id if entry.faculty_course and entry.faculty_course.faculty else '' }}
+                                </div>
+                                <div class="landscape-room-code">
+                                    {{ entry.room.room_id if entry.room else '' }}
+                                </div>
                             </div>
+                            {% if not loop.last %}<hr class="landscape-separator">{% endif %}
                             {% endfor %}
                         </td>
                         {% endfor %}
@@ -205,17 +225,29 @@
             <h6 class="mb-3">Statistics</h6>
             <div class="row text-center">
                 <div class="col-4">
-                    <h4 class="mb-0 text-primary">{{ entries|selectattr('session_type', 'equalto',
-                        'lecture')|list|length }}</h4>
+                    <h4 class="mb-0 text-primary">
+                        {{ entries
+                            |selectattr('faculty_course.session_type', 'equalto', 'L')
+                            |list
+                            |length }}
+                    </h4>
                     <small class="text-muted">Lectures</small>
                 </div>
                 <div class="col-4">
-                    <h4 class="mb-0 text-warning">{{ entries|selectattr('session_type', 'equalto',
-                        'tutorial')|list|length }}</h4>
+                    <h4 class="mb-0 text-warning">
+                        {{ entries
+                            |selectattr('faculty_course.session_type', 'equalto', 'T')
+                            |list
+                            |length }}
+                    </h4>
                     <small class="text-muted">Tutorials</small>
                 </div>
                 <div class="col-4">
-                    <h4 class="mb-0 text-success">{{ entries|selectattr('session_type', 'equalto', 'lab')|list|length }}
+                    <h4 class="mb-0 text-success">
+                        {{ entries
+                            |selectattr('faculty_course.session_type', 'equalto', 'P')
+                            |list
+                            |length }}
                     </h4>
                     <small class="text-muted">Labs</small>
                 </div>
@@ -227,6 +259,165 @@
 
 {% block extra_css %}
 <style>
+    /* Landscape Timetable Container */
+    .landscape-timetable-container {
+        width: 100%;
+        overflow-x: auto;
+        padding: 1rem;
+    }
+
+    .landscape-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .landscape-table {
+        width: 100%;
+        min-width: 900px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.85rem;
+    }
+
+    .landscape-table th,
+    .landscape-table td {
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        padding: 0.5rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    /* Header Styles */
+    .day-col-header {
+        width: 120px;
+        background: rgba(99, 102, 241, 0.1) !important;
+        font-weight: 600;
+        position: sticky;
+        left: 0;
+        z-index: 10;
+    }
+
+    .period-header {
+        min-width: 100px;
+        background: #6366f1 !important;
+        color: white !important;
+        font-weight: 600;
+    }
+
+    .time-row-header {
+        background: rgba(224, 231, 255, 0.5) !important;
+    }
+
+    .time-header-cell {
+        font-size: 0.7rem;
+        color: #4b5563;
+        font-weight: 500;
+        padding: 0.3rem 0.5rem;
+    }
+
+    /* Day Column */
+    .day-cell {
+        background: rgba(241, 245, 249, 0.8);
+        font-weight: 600;
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        min-width: 120px;
+    }
+
+    /* Slot Cells */
+    .slot-cell {
+        min-width: 100px;
+        min-height: 60px;
+        padding: 0.4rem;
+        vertical-align: top;
+    }
+
+    .slot-cell.has-class {
+        background: rgba(99, 102, 241, 0.03);
+    }
+
+    /* Landscape Class Entry (Compact Format) */
+    .landscape-class-entry {
+        padding: 0.3rem;
+        margin-bottom: 0.2rem;
+        border-radius: 4px;
+        text-align: center;
+        line-height: 1.3;
+    }
+
+    .landscape-class-entry.lecture-class {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.06));
+        border-left: 3px solid #6366f1;
+    }
+
+    .landscape-class-entry.lab-class {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(34, 197, 94, 0.06));
+        border-left: 3px solid #22c55e;
+    }
+
+    .landscape-course-code {
+        font-weight: 700;
+        font-size: 0.75rem;
+        color: #6366f1;
+        margin-bottom: 0.15rem;
+    }
+
+    .landscape-class-entry.lab-class .landscape-course-code {
+        color: #22c55e;
+    }
+
+    .landscape-faculty-code {
+        font-size: 0.65rem;
+        color: #6b7280;
+        font-weight: 500;
+        margin-bottom: 0.1rem;
+    }
+
+    .landscape-room-code {
+        font-size: 0.65rem;
+        color: #9ca3af;
+    }
+
+    .landscape-separator {
+        margin: 0.2rem 0;
+        border: none;
+        border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .landscape-table {
+            font-size: 0.75rem;
+        }
+
+        .landscape-course-code {
+            font-size: 0.7rem;
+        }
+
+        .landscape-faculty-code,
+        .landscape-room-code {
+            font-size: 0.6rem;
+        }
+    }
+
+    /* Print styles for landscape */
+    @media print {
+        .landscape-timetable-container {
+            page-break-inside: avoid;
+        }
+
+        .landscape-table {
+            page-break-inside: auto;
+        }
+
+        .landscape-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }
+
+    /* Batch view styles (keep existing for batch view) */
     .timetable-table {
         border-collapse: separate;
         border-spacing: 0;
@@ -261,16 +452,6 @@
     .time-range {
         font-size: 0.75rem;
         color: var(--text-muted);
-    }
-
-    .slot-cell {
-        padding: 0.5rem;
-        vertical-align: top;
-        min-height: 80px;
-    }
-
-    .slot-cell.has-class {
-        background: rgba(99, 102, 241, 0.02);
     }
 
     .class-card {

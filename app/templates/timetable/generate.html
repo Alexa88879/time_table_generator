@@ -409,7 +409,8 @@
 
         if (data.section_id) {
             document.getElementById('viewTimetableBtn').href = `/timetable/view/${data.section_id}`;
-            document.getElementById('exportPdfBtn').href = `/export/pdf/${data.section_id}`;
+            // Correct export URL to match export blueprint route
+            document.getElementById('exportPdfBtn').href = `/export/section/${data.section_id}/pdf`;
         }
 
         showToast('Timetable generated successfully!', 'success');

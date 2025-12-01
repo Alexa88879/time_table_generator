@@ -13,7 +13,8 @@ def index():
     """Export options page"""
     sections = Section.query.filter_by(is_active=True).order_by(Section.semester, Section.name).all()
     faculty = Faculty.query.filter_by(is_active=True).order_by(Faculty.name).all()
-    rooms = Room.query.filter_by(is_active=True).order_by(Room.name).all()
+    # Room model uses `is_available` instead of `is_active`
+    rooms = Room.query.filter_by(is_available=True).order_by(Room.name).all()
     
     return render_template('export/index.html', sections=sections, faculty=faculty, rooms=rooms)
 
@@ -30,7 +31,8 @@ def export_section_pdf(section_id):
     
     section = Section.query.get_or_404(section_id)
     entries = Timetable.query.filter_by(section_id=section_id).all()
-    timeslots = TimeSlot.query.order_by(TimeSlot.day_code, TimeSlot.period).all()
+    # Order by day_index (0-4) then period (1-8)
+    timeslots = TimeSlot.query.order_by(TimeSlot.day_index, TimeSlot.period).all()
     
     # Create PDF
     buffer = BytesIO()
@@ -48,7 +50,8 @@ def export_section_pdf(section_id):
         spaceAfter=20
     )
     elements.append(Paragraph(f"Timetable - Semester {section.semester} Section {section.name}", title_style))
-    elements.append(Paragraph(f"Department: {section.department}", styles['Normal']))
+    # Section model stores branch (e.g., CSE) instead of department field
+    elements.append(Paragraph(f"Department: {section.branch}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
     # Build timetable grid
@@ -82,8 +85,11 @@ def export_section_pdf(section_id):
             if entries_at_slot:
                 cell_text = []
                 for e in entries_at_slot:
+                    course_code = e.faculty_course.course.code if e.faculty_course and e.faculty_course.course else ''
+                    faculty_code = e.faculty_course.faculty.faculty_id if e.faculty_course and e.faculty_course.faculty else ''
+                    room_code = e.room.room_id if e.room else ''
                     batch_text = f" ({e.batch.name})" if e.batch else ""
-                    cell_text.append(f"{e.course.code}{batch_text}\n{e.faculty.code}\n{e.room.code if e.room else ''}")
+                    cell_text.append(f"{course_code}{batch_text}\n{faculty_code}\n{room_code}")
                 row.append('\n---\n'.join(cell_text))
             else:
                 row.append('')
@@ -141,7 +147,8 @@ def export_section_excel(section_id):
     
     section = Section.query.get_or_404(section_id)
     entries = Timetable.query.filter_by(section_id=section_id).all()
-    timeslots = TimeSlot.query.order_by(TimeSlot.day_code, TimeSlot.period).all()
+    # Order by day_index (0-4) then period (1-8)
+    timeslots = TimeSlot.query.order_by(TimeSlot.day_index, TimeSlot.period).all()
     
     # Create workbook
     wb = Workbook()
@@ -204,8 +211,11 @@ def export_section_excel(section_id):
             if entries_at_slot:
                 cell_text = []
                 for e in entries_at_slot:
+                    course_code = e.faculty_course.course.code if e.faculty_course and e.faculty_course.course else ''
+                    faculty_code = e.faculty_course.faculty.faculty_id if e.faculty_course and e.faculty_course.faculty else ''
+                    room_code = e.room.room_id if e.room else ''
                     batch_text = f" ({e.batch.name})" if e.batch else ""
-                    cell_text.append(f"{e.course.code}{batch_text}\n{e.faculty.code}\n{e.room.code if e.room else ''}")
+                    cell_text.append(f"{course_code}{batch_text}\n{faculty_code}\n{room_code}")
                 cell = ws.cell(row=row_idx, column=col_idx, value='\n'.join(cell_text))
             else:
                 cell = ws.cell(row=row_idx, column=col_idx, value='')
@@ -263,7 +273,7 @@ def export_faculty_pdf(faculty_id):
         spaceAfter=20
     )
     elements.append(Paragraph(f"Faculty Timetable - {faculty.name}", title_style))
-    elements.append(Paragraph(f"Code: {faculty.code} | Department: {faculty.department}", styles['Normal']))
+    elements.append(Paragraph(f"Code: {faculty.faculty_id} | Department: {faculty.department}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
     # Build similar grid as section timetable...
@@ -287,7 +297,10 @@ def export_faculty_pdf(faculty_id):
             if entries_at_slot:
                 cell_text = []
                 for e in entries_at_slot:
-                    cell_text.append(f"{e.course.code}\nSem{e.section.semester}-{e.section.name}\n{e.room.code if e.room else ''}")
+                    course_code = e.faculty_course.course.code if e.faculty_course and e.faculty_course.course else ''
+                    section_label = f"Sem{e.section.semester}-{e.section.name}" if e.section else ''
+                    room_code = e.room.room_id if e.room else ''
+                    cell_text.append(f"{course_code}\n{section_label}\n{room_code}")
                 row.append('\n'.join(cell_text))
             else:
                 row.append('')
@@ -346,7 +359,7 @@ def export_room_pdf(room_id):
         spaceAfter=20
     )
     elements.append(Paragraph(f"Room Timetable - {room.name}", title_style))
-    elements.append(Paragraph(f"Code: {room.code} | Capacity: {room.capacity}", styles['Normal']))
+    elements.append(Paragraph(f"Code: {room.room_id} | Capacity: {room.capacity}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
@@ -369,7 +382,10 @@ def export_room_pdf(room_id):
             if entries_at_slot:
                 cell_text = []
                 for e in entries_at_slot:
-                    cell_text.append(f"{e.course.code}\nSem{e.section.semester}-{e.section.name}\n{e.faculty.code}")
+                    course_code = e.faculty_course.course.code if e.faculty_course and e.faculty_course.course else ''
+                    section_label = f"Sem{e.section.semester}-{e.section.name}" if e.section else ''
+                    faculty_code = e.faculty_course.faculty.faculty_id if e.faculty_course and e.faculty_course.faculty else ''
+                    cell_text.append(f"{course_code}\n{section_label}\n{faculty_code}")
                 row.append('\n'.join(cell_text))
             else:
                 row.append('')
@@ -452,8 +468,9 @@ def export_master_excel():
                 if entries_at_slot:
                     cell_text = []
                     for e in entries_at_slot:
+                        course_code = e.faculty_course.course.code if e.faculty_course and e.faculty_course.course else ''
                         batch_text = f" ({e.batch.name})" if e.batch else ""
-                        cell_text.append(f"{e.course.code}{batch_text}")
+                        cell_text.append(f"{course_code}{batch_text}")
                     ws.cell(row=row_idx, column=col_idx, value='\n'.join(cell_text))
     
     if not wb.sheetnames:

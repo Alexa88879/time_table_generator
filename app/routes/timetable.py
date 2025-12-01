@@ -128,26 +128,20 @@ def view(section_id):
         if slot.day in slots_by_day:
             slots_by_day[slot.day].append(slot)
     
-    # Get timetable entries
+    # Get timetable entries for this section
     entries = Timetable.query.filter_by(section_id=section_id).all()
-    
-    # Create timetable grid
-    timetable_grid = {}
-    for entry in entries:
-        key = f"{entry.timeslot.day}_{entry.timeslot.period}"
-        if key not in timetable_grid:
-            timetable_grid[key] = []
-        timetable_grid[key].append(entry)
     
     # Get batches for lab view
     batches = Batch.query.filter_by(section_id=section_id).all()
     
-    return render_template('timetable/view.html',
-                         section=section,
-                         days=days,
-                         slots_by_day=slots_by_day,
-                         timetable_grid=timetable_grid,
-                         batches=batches)
+    return render_template(
+        'timetable/view.html',
+        section=section,
+        days=days,
+        slots_by_day=slots_by_day,
+        entries=entries,
+        batches=batches
+    )
 
 
 @timetable_bp.route('/view-all')
