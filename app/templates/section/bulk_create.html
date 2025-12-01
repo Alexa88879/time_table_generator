@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Bulk Create Sections{% endblock %}
+{% block page_title %}Bulk Create Sections{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('section.list_sections') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-layer-group me-2 text-primary"></i>Create Multiple Sections</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Select Semesters</label>
+                        <div class="row g-2">
+                            {% for sem in range(1, 9) %}
+                            <div class="col-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="semesters" 
+                                           value="{{ sem }}" id="sem{{ sem }}">
+                                    <label class="form-check-label" for="sem{{ sem }}">
+                                        Semester {{ sem }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Section Names</label>
+                        <div class="row g-2">
+                            {% for sec in ['A', 'B', 'C', 'D'] %}
+                            <div class="col-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="sections" 
+                                           value="{{ sec }}" id="sec{{ sec }}" checked>
+                                    <label class="form-check-label" for="sec{{ sec }}">
+                                        Section {{ sec }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department" name="department">
+                                <option value="CSE" selected>Computer Science & Engineering</option>
+                                <option value="IT">Information Technology</option>
+                                <option value="ECE">Electronics & Communication</option>
+                                <option value="ME">Mechanical Engineering</option>
+                                <option value="CE">Civil Engineering</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="students_per_section" class="form-label">Students per Section</label>
+                            <input type="number" class="form-control" id="students_per_section" 
+                                   name="students_per_section" value="60" min="20" max="120">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="create_batches" 
+                                   id="createBatches" checked>
+                            <label class="form-check-label" for="createBatches">
+                                Auto-create lab batches (G1, G2)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('section.list_sections') }}" class="btn btn-outline-secondary flex-fill">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="fas fa-layer-group me-2"></i>Create Sections
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

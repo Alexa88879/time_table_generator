@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if faculty else 'Add' }} Faculty{% endblock %}
+{% block page_title %}{{ 'Edit' if faculty else 'Add New' }} Faculty{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header border-0 bg-transparent">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('faculty.list_faculty') }}">Faculty</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ 'Edit' if faculty else 'Add New' }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('faculty.edit_faculty', id=faculty.id) if faculty else url_for('faculty.add_faculty') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       value="{{ faculty.code if faculty else '' }}" 
+                                       placeholder="Faculty Code" required>
+                                <label for="code">Faculty Code *</label>
+                            </div>
+                            <small class="text-muted">e.g., FAC001, CSE-F01</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ faculty.name if faculty else '' }}" 
+                                       placeholder="Full Name" required>
+                                <label for="name">Full Name *</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ faculty.email if faculty else '' }}" 
+                                       placeholder="Email">
+                                <label for="email">Email Address</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ faculty.phone if faculty else '' }}" 
+                                       placeholder="Phone">
+                                <label for="phone">Phone Number</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="department" name="department">
+                                    <option value="CSE" {{ 'selected' if not faculty or faculty.department == 'CSE' else '' }}>Computer Science</option>
+                                    <option value="IT" {{ 'selected' if faculty and faculty.department == 'IT' else '' }}>Information Technology</option>
+                                    <option value="ECE" {{ 'selected' if faculty and faculty.department == 'ECE' else '' }}>Electronics</option>
+                                    <option value="EE" {{ 'selected' if faculty and faculty.department == 'EE' else '' }}>Electrical</option>
+                                    <option value="ME" {{ 'selected' if faculty and faculty.department == 'ME' else '' }}>Mechanical</option>
+                                    <option value="CE" {{ 'selected' if faculty and faculty.department == 'CE' else '' }}>Civil</option>
+                                    <option value="MATH" {{ 'selected' if faculty and faculty.department == 'MATH' else '' }}>Mathematics</option>
+                                    <option value="PHY" {{ 'selected' if faculty and faculty.department == 'PHY' else '' }}>Physics</option>
+                                    <option value="CHEM" {{ 'selected' if faculty and faculty.department == 'CHEM' else '' }}>Chemistry</option>
+                                    <option value="HUM" {{ 'selected' if faculty and faculty.department == 'HUM' else '' }}>Humanities</option>
+                                </select>
+                                <label for="department">Department</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="designation" name="designation">
+                                    <option value="Professor" {{ 'selected' if faculty and faculty.designation == 'Professor' else '' }}>Professor</option>
+                                    <option value="Associate Professor" {{ 'selected' if faculty and faculty.designation == 'Associate Professor' else '' }}>Associate Professor</option>
+                                    <option value="Assistant Professor" {{ 'selected' if not faculty or faculty.designation == 'Assistant Professor' else '' }}>Assistant Professor</option>
+                                    <option value="Lecturer" {{ 'selected' if faculty and faculty.designation == 'Lecturer' else '' }}>Lecturer</option>
+                                    <option value="Lab Instructor" {{ 'selected' if faculty and faculty.designation == 'Lab Instructor' else '' }}>Lab Instructor</option>
+                                </select>
+                                <label for="designation">Designation</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="max_hours" name="max_hours" 
+                                       value="{{ faculty.max_hours if faculty else 20 }}" 
+                                       min="1" max="40" placeholder="Max Hours">
+                                <label for="max_hours">Max Hours per Week *</label>
+                            </div>
+                            <small class="text-muted">Maximum teaching load (typically 12-20 hours)</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-check form-switch mt-3">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                       {{ 'checked' if not faculty or faculty.is_active else '' }}>
+                                <label class="form-check-label" for="is_active">Active Status</label>
+                            </div>
+                            <small class="text-muted">Inactive faculty won't appear in scheduling</small>
+                        </div>
+                    </div>
+                    
+                    {% if faculty %}
+                    <hr class="my-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-clock me-2 text-primary"></i>Time Preferences
+                    </h5>
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                You can set detailed time preferences from the faculty list page by clicking the preferences button.
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between pt-3">
+                        <a href="{{ url_for('faculty.list_faculty') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ 'Update' if faculty else 'Create' }} Faculty
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

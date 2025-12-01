@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Timetable Generator{% endblock %} | NEP 2020</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- AOS Animation -->
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Dropzone -->
+    <link href="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/glassmorphism.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/animations.css') }}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar glass-dark" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <i class="bi bi-calendar3 logo-icon"></i>
+                <span class="logo-text">TimeTableGen</span>
+            </div>
+            <button class="btn-toggle-sidebar d-lg-none" id="toggleSidebar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="sidebar-body">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                
+                <li class="nav-section">Master Data</li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('faculty.list_faculty') }}" class="nav-link {% if 'faculty' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-people"></i>
+                        <span>Faculty</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('room.list_rooms') }}" class="nav-link {% if 'room' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-door-open"></i>
+                        <span>Rooms & Labs</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('section.list_sections') }}" class="nav-link {% if 'section' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-collection"></i>
+                        <span>Sections</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('main.courses_list') }}" class="nav-link {% if 'courses' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-book"></i>
+                        <span>Courses</span>
+                    </a>
+                </li>
+                
+                <li class="nav-section">Configuration</li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('mapping.list_mappings') }}" class="nav-link {% if 'mapping' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-link-45deg"></i>
+                        <span>Faculty-Course Mapping</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('upload.index') }}" class="nav-link {% if 'upload' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-cloud-upload"></i>
+                        <span>Excel Upload</span>
+                    </a>
+                </li>
+                
+                <li class="nav-section">Generation</li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('timetable.generate') }}" class="nav-link {% if request.endpoint == 'timetable.generate' %}active{% endif %}">
+                        <i class="bi bi-magic"></i>
+                        <span>Generate Timetable</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('timetable.view_all') }}" class="nav-link {% if request.endpoint == 'timetable.view_all' %}active{% endif %}">
+                        <i class="bi bi-table"></i>
+                        <span>View Timetables</span>
+                    </a>
+                </li>
+                
+                <li class="nav-section">Export</li>
+                
+                <li class="nav-item">
+                    <a href="{{ url_for('export.index') }}" class="nav-link {% if 'export' in request.endpoint %}active{% endif %}">
+                        <i class="bi bi-download"></i>
+                        <span>Export</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="theme-toggle">
+                <button class="btn btn-sm btn-glass" id="themeToggle">
+                    <i class="bi bi-moon-fill"></i>
+                    <span>Dark Mode</span>
+                </button>
+            </div>
+            <div class="version-info">
+                <small>NEP 2020 Compliant v1.0</small>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Navbar -->
+        <nav class="top-navbar glass">
+            <div class="navbar-left">
+                <button class="btn-toggle-sidebar d-lg-none" id="openSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="page-title">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+                            {% block breadcrumb %}{% endblock %}
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+            <div class="navbar-right">
+                <div class="quick-stats">
+                    <div class="stat-item" title="Active Sections">
+                        <i class="bi bi-collection"></i>
+                        <span id="quickStatSections">-</span>
+                    </div>
+                    <div class="stat-item" title="Faculty Count">
+                        <i class="bi bi-people"></i>
+                        <span id="quickStatFaculty">-</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="content-wrapper">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show glass" role="alert" data-aos="fade-down">
+                            <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer glass">
+            <div class="footer-content">
+                <span>&copy; 2024 Timetable Generator - NEP 2020 Compliant</span>
+                <span>B.Tech CSE Curriculum</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader">
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

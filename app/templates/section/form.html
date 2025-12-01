@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if section else 'Add' }} Section{% endblock %}
+{% block page_title %}{{ 'Edit' if section else 'Add New' }} Section{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header border-0 bg-transparent">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('section.list_sections') }}">Sections</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ 'Edit' if section else 'Add New' }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('section.edit_section', id=section.id) if section else url_for('section.add_section') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ section.name if section else '' }}" 
+                                       placeholder="Section Name" required>
+                                <label for="name">Section Name *</label>
+                            </div>
+                            <small class="text-muted">e.g., CSE-A, CSE-B, CSE 1st Year A</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="semester" name="semester" required>
+                                    {% for sem in range(1, 9) %}
+                                    <option value="{{ sem }}" {{ 'selected' if section and section.semester == sem else '' }}>
+                                        Semester {{ sem }} (Year {{ ((sem + 1) // 2) }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <label for="semester">Semester *</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="strength" name="strength" 
+                                       value="{{ section.strength if section else 60 }}" 
+                                       min="1" max="200" placeholder="Strength" required>
+                                <label for="strength">Student Strength *</label>
+                            </div>
+                            <small class="text-muted">Total number of students in this section</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="academic_year" name="academic_year">
+                                    <option value="2024-25" {{ 'selected' if not section or section.academic_year == '2024-25' else '' }}>2024-25</option>
+                                    <option value="2023-24" {{ 'selected' if section and section.academic_year == '2023-24' else '' }}>2023-24</option>
+                                    <option value="2025-26" {{ 'selected' if section and section.academic_year == '2025-26' else '' }}>2025-26</option>
+                                </select>
+                                <label for="academic_year">Academic Year</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-check form-switch mt-3">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                       {{ 'checked' if not section or section.is_active else '' }}>
+                                <label class="form-check-label" for="is_active">Active Status</label>
+                            </div>
+                            <small class="text-muted">Inactive sections won't appear in scheduling</small>
+                        </div>
+                    </div>
+                    
+                    {% if not section %}
+                    <hr class="my-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-layer-group me-2 text-success"></i>Lab Batches (Optional)
+                    </h5>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Batches divide students for lab sessions. Typically sections are split into 2 batches (G1 and G2).
+                        You can also add batches later from the sections list.
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="create_batches" name="create_batches" checked>
+                        <label class="form-check-label" for="create_batches">
+                            Automatically create G1 and G2 batches
+                        </label>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between pt-3">
+                        <a href="{{ url_for('section.list_sections') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ 'Update' if section else 'Create' }} Section
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}{{ faculty.name }} - Preferences{% endblock %}
+{% block page_title %}Faculty Preferences{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('faculty.view_faculty', id=faculty.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Profile
+                </a>
+            </div>
+            <div>
+                <h5 class="mb-0">{{ faculty.name }} ({{ faculty.code }})</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="row g-4">
+        <!-- Time Preferences -->
+        <div class="col-lg-6" data-aos="fade-right">
+            <div class="glass-card h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Time Slot Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Select preferred and unavailable time slots</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Day/Period</th>
+                                    {% for p in range(1, 9) %}
+                                    <th class="text-center">P{{ p }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                                <tr>
+                                    <td><strong>{{ day[:3] }}</strong></td>
+                                    {% for p in range(1, 9) %}
+                                    {% set slot_key = day + '_' + p|string %}
+                                    <td class="text-center">
+                                        <select name="slot_{{ slot_key }}" class="form-select form-select-sm slot-select" 
+                                                style="width: 50px; padding: 2px;">
+                                            <option value="neutral" {{ 'selected' if preferences.get(slot_key) == 'neutral' else '' }}>-</option>
+                                            <option value="preferred" {{ 'selected' if preferences.get(slot_key) == 'preferred' else '' }}>✓</option>
+                                            <option value="unavailable" {{ 'selected' if preferences.get(slot_key) == 'unavailable' else '' }}>✗</option>
+                                        </select>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <span class="badge bg-success me-1">✓</span> Preferred
+                            <span class="badge bg-secondary mx-1">-</span> Neutral
+                            <span class="badge bg-danger ms-1">✗</span> Unavailable
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Other Preferences -->
+        <div class="col-lg-6" data-aos="fade-left">
+            <div class="glass-card h-100">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2 text-success"></i>Additional Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="form-label">Max Consecutive Classes</label>
+                        <select name="max_consecutive" class="form-select">
+                            {% for i in range(2, 6) %}
+                            <option value="{{ i }}" {{ 'selected' if preferences.get('max_consecutive') == i else '' }}>{{ i }} classes</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Maximum number of back-to-back classes</small>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Preferred Gap Between Classes</label>
+                        <select name="min_gap" class="form-select">
+                            <option value="0" {{ 'selected' if preferences.get('min_gap') == 0 else '' }}>No gap required</option>
+                            <option value="1" {{ 'selected' if preferences.get('min_gap') == 1 else '' }}>1 period</option>
+                            <option value="2" {{ 'selected' if preferences.get('min_gap') == 2 else '' }}>2 periods</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="prefer_morning" id="preferMorning"
+                                   {{ 'checked' if preferences.get('prefer_morning') else '' }}>
+                            <label class="form-check-label" for="preferMorning">Prefer Morning Classes</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="avoid_last_period" id="avoidLast"
+                                   {{ 'checked' if preferences.get('avoid_last_period') else '' }}>
+                            <label class="form-check-label" for="avoidLast">Avoid Last Period</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" 
+                                  placeholder="Any additional preferences...">{{ preferences.get('notes', '') }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save me-2"></i>Save Preferences
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}Rooms & Labs{% endblock %}
+{% block page_title %}Rooms & Labs Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <p class="text-muted mb-0">Manage classrooms and laboratory spaces</p>
+            </div>
+            <div>
+                <a href="{{ url_for('room.add_room') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Room
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-primary-subtle text-primary mx-auto mb-3">
+                <i class="fas fa-building"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ rooms|length }}</h3>
+            <p class="text-muted mb-0">Total Rooms</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-info-subtle text-info mx-auto mb-3">
+                <i class="fas fa-chalkboard"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ rooms|rejectattr('is_lab')|list|length }}</h3>
+            <p class="text-muted mb-0">Classrooms</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-success-subtle text-success mx-auto mb-3">
+                <i class="fas fa-flask"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ rooms|selectattr('is_lab')|list|length }}</h3>
+            <p class="text-muted mb-0">Labs</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-warning-subtle text-warning mx-auto mb-3">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ rooms|map(attribute='capacity')|sum }}</h3>
+            <p class="text-muted mb-0">Total Capacity</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs for Classrooms and Labs -->
+<ul class="nav nav-pills glass-tabs mb-4" data-aos="fade-up" data-aos-delay="500">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#classrooms">
+            <i class="fas fa-chalkboard me-2"></i>Classrooms
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#labs">
+            <i class="fas fa-flask me-2"></i>Labs
+        </a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Classrooms Tab -->
+    <div class="tab-pane fade show active" id="classrooms">
+        <div class="row g-4">
+            {% for room in rooms if not room.is_lab %}
+            <div class="col-lg-4 col-md-6" data-aos="fade-up">
+                <div class="glass-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-primary mb-2">{{ room.code }}</span>
+                                <h5 class="mb-1">{{ room.name }}</h5>
+                            </div>
+                            {% if room.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="room-details">
+                            <div class="detail-row">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span>{{ room.building or 'Main Building' }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-layer-group text-muted me-2"></i>
+                                <span>Floor {{ room.floor or 0 }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-users text-muted me-2"></i>
+                                <span>Capacity: {{ room.capacity }} students</span>
+                            </div>
+                        </div>
+                        
+                        {% if room.facilities %}
+                        <div class="mt-3">
+                            {% for facility in room.facilities.split(',') %}
+                            <span class="badge bg-light text-dark me-1 mb-1">{{ facility.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('room.edit_room', id=room.id) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete('{{ url_for('room.delete_room', id=room.id) }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="glass-card p-5 text-center">
+                    <i class="fas fa-chalkboard fa-3x text-muted mb-3"></i>
+                    <h5>No Classrooms Yet</h5>
+                    <p class="text-muted mb-3">Add your first classroom to get started</p>
+                    <a href="{{ url_for('room.add_room') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Classroom
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Labs Tab -->
+    <div class="tab-pane fade" id="labs">
+        <div class="row g-4">
+            {% for room in rooms if room.is_lab %}
+            <div class="col-lg-4 col-md-6" data-aos="fade-up">
+                <div class="glass-card h-100 border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-success mb-2">{{ room.code }}</span>
+                                <h5 class="mb-1">{{ room.name }}</h5>
+                            </div>
+                            {% if room.is_active %}
+                            <span class="badge bg-success-subtle text-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="room-details">
+                            <div class="detail-row">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span>{{ room.building or 'Main Building' }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-layer-group text-muted me-2"></i>
+                                <span>Floor {{ room.floor or 0 }}</span>
+                            </div>
+                            <div class="detail-row">
+                                <i class="fas fa-desktop text-muted me-2"></i>
+                                <span>{{ room.capacity }} workstations</span>
+                            </div>
+                            {% if room.lab_type %}
+                            <div class="detail-row">
+                                <i class="fas fa-tag text-muted me-2"></i>
+                                <span>{{ room.lab_type }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if room.facilities %}
+                        <div class="mt-3">
+                            {% for facility in room.facilities.split(',') %}
+                            <span class="badge bg-success-subtle text-success me-1 mb-1">{{ facility.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('room.edit_room', id=room.id) }}" class="btn btn-sm btn-outline-success flex-fill">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="confirmDelete('{{ url_for('room.delete_room', id=room.id) }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="glass-card p-5 text-center">
+                    <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                    <h5>No Labs Yet</h5>
+                    <p class="text-muted mb-3">Add your first laboratory to get started</p>
+                    <a href="{{ url_for('room.add_room') }}?is_lab=1" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Add Lab
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+.glass-tabs {
+    background: var(--glass-bg);
+    padding: 0.5rem;
+    border-radius: 12px;
+    display: inline-flex;
+}
+.glass-tabs .nav-link {
+    border-radius: 8px;
+    color: var(--text-color);
+    padding: 0.5rem 1.5rem;
+}
+.glass-tabs .nav-link.active {
+    background: var(--primary);
+    color: white;
+}
+.room-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.detail-row {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+.border-success {
+    border-left: 3px solid var(--bs-success) !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This room will be permanently deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+</script>
+{% endblock %}

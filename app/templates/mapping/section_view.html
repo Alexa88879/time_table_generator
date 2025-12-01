@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}{{ section.name }} - Mappings{% endblock %}
+{% block page_title %}Section Course Mappings{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to All Mappings
+                </a>
+            </div>
+            <div>
+                <a href="{{ url_for('mapping.add_mapping') }}?section_id={{ section.id }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Mapping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Section Info -->
+    <div class="col-lg-4" data-aos="fade-right">
+        <div class="glass-card">
+            <div class="card-body text-center">
+                <div class="avatar-lg mx-auto mb-3">
+                    <span class="avatar-text bg-primary-subtle text-primary">S{{ section.semester }}</span>
+                </div>
+                <h4 class="mb-1">{{ section.name }}</h4>
+                <p class="text-muted mb-0">Semester {{ section.semester }} - {{ section.department }}</p>
+            </div>
+        </div>
+        
+        <!-- Unmapped Courses -->
+        {% if unmapped_courses %}
+        <div class="glass-card mt-4">
+            <div class="card-header bg-transparent">
+                <h6 class="mb-0 text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Unmapped Courses
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    {% for course in unmapped_courses %}
+                    <li class="mb-2">
+                        <span class="badge bg-{{ 'info' if course.is_lab else 'secondary' }} me-1">{{ course.code }}</span>
+                        <small>{{ course.name }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Mapped Courses -->
+    <div class="col-lg-8" data-aos="fade-left">
+        <div class="glass-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-link me-2 text-success"></i>Assigned Courses</h5>
+            </div>
+            <div class="card-body">
+                {% if mappings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Faculty</th>
+                                <th>Type</th>
+                                <th>Batch</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in mappings %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if m.course.is_lab else 'secondary' }} me-1">{{ m.course.code }}</span>
+                                    {{ m.course.name }}
+                                </td>
+                                <td>{{ m.faculty.name }} ({{ m.faculty.code }})</td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if m.session_type == 'lab' else 'primary' }}">
+                                        {{ m.session_type.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ m.batch.name if m.batch else 'All Students' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('mapping.edit_mapping', id=m.id) }}" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger" 
+                                                onclick="deleteMapping({{ m.id }})" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-link fa-3x mb-3"></i>
+                    <p class="mb-0">No course mappings yet</p>
+                    <a href="{{ url_for('mapping.add_mapping') }}?section_id={{ section.id }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i>Add First Mapping
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function deleteMapping(id) {
+    Swal.fire({
+        title: 'Delete Mapping?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/mappings/delete/${id}`, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

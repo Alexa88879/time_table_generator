@@ -1,0 +1,576 @@
+{% extends "base.html" %}
+{% block title %}Edit Timetable - {{ section.name }}{% endblock %}
+{% block page_title %}Edit Timetable: {{ section.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge bg-warning me-2">Edit Mode</span>
+                <span class="text-muted">Drag and drop classes to rearrange</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('timetable.view', section_id=section.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-eye me-2"></i>View Mode
+                </a>
+                <button class="btn btn-outline-danger" onclick="resetChanges()">
+                    <i class="fas fa-undo me-2"></i>Reset
+                </button>
+                <button class="btn btn-primary" onclick="saveChanges()">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unassigned Classes Panel -->
+<div class="glass-card mb-4" data-aos="fade-up">
+    <div class="card-header bg-transparent">
+        <h6 class="mb-0">
+            <i class="fas fa-inbox me-2"></i>Unassigned Classes
+            <span class="badge bg-secondary ms-2" id="unassignedCount">0</span>
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="unassigned-container" id="unassignedContainer">
+            <p class="text-muted mb-0">Drag classes here to unassign them, or add new classes</p>
+        </div>
+    </div>
+</div>
+
+<!-- Editable Timetable -->
+<div class="glass-card" data-aos="fade-up" data-aos-delay="100">
+    <div class="table-responsive">
+        <table class="table table-bordered timetable-table mb-0">
+            <thead class="bg-warning text-dark">
+                <tr>
+                    <th class="time-header">Time</th>
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                    <th class="day-header">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% set period_times = {
+                    1: '09:10 - 10:00',
+                    2: '10:00 - 10:50',
+                    3: '10:50 - 11:40',
+                    4: '11:40 - 12:30',
+                    5: '01:30 - 02:20',
+                    6: '02:20 - 03:10',
+                    7: '03:10 - 04:00',
+                    8: '04:00 - 04:50'
+                } %}
+                
+                {% for period in range(1, 9) %}
+                {% if period == 5 %}
+                <tr class="lunch-break">
+                    <td colspan="6" class="text-center">
+                        <i class="fas fa-utensils me-2"></i>Lunch Break (12:30 - 01:30)
+                    </td>
+                </tr>
+                {% endif %}
+                
+                <tr>
+                    <td class="time-cell">
+                        <div class="period-num">P{{ period }}</div>
+                        <div class="time-range">{{ period_times[period] }}</div>
+                    </td>
+                    
+                    {% for day_code in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                    {% set timeslot = timeslots|selectattr('day', 'equalto', day_code)|selectattr('period', 'equalto', period)|first %}
+                    
+                    <td class="slot-cell droppable" 
+                        data-day="{{ day_code }}" 
+                        data-period="{{ period }}"
+                        data-timeslot="{{ timeslot.id if timeslot else '' }}">
+                        
+                        {% set slot_entries = entries|selectattr('timeslot.day', 'equalto', day_code)|selectattr('timeslot.period', 'equalto', period)|list %}
+                        
+                        {% for entry in slot_entries %}
+                        <div class="class-card draggable {{ 'lab-class' if entry.course.is_lab else 'lecture-class' }}"
+                             draggable="true"
+                             data-entry-id="{{ entry.id }}"
+                             data-course-id="{{ entry.course_id }}"
+                             data-faculty-id="{{ entry.faculty_id }}"
+                             data-room-id="{{ entry.room_id }}"
+                             data-batch-id="{{ entry.batch_id or '' }}">
+                            <div class="drag-handle">
+                                <i class="fas fa-grip-vertical"></i>
+                            </div>
+                            <div class="course-code">{{ entry.course.code }}</div>
+                            <div class="course-name">{{ entry.course.name|truncate(20) }}</div>
+                            <div class="class-details">
+                                <span>{{ entry.faculty.name|truncate(12) }}</span>
+                                <span>{{ entry.room.code }}</span>
+                            </div>
+                            {% if entry.batch %}
+                            <span class="batch-badge">{{ entry.batch.name }}</span>
+                            {% endif %}
+                            <button class="delete-btn" onclick="deleteEntry({{ entry.id }})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add New Entry Modal -->
+<button class="fab-button" data-bs-toggle="modal" data-bs-target="#addEntryModal">
+    <i class="fas fa-plus"></i>
+</button>
+
+<div class="modal fade" id="addEntryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">Add New Class</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addEntryForm">
+                    <div class="mb-3">
+                        <label class="form-label">Course</label>
+                        <select class="form-select" name="course_id" required>
+                            <option value="">Select Course</option>
+                            {% for course in courses %}
+                            <option value="{{ course.id }}">{{ course.code }} - {{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Faculty</label>
+                        <select class="form-select" name="faculty_id" required>
+                            <option value="">Select Faculty</option>
+                            {% for faculty in faculty_list %}
+                            <option value="{{ faculty.id }}">{{ faculty.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Room</label>
+                        <select class="form-select" name="room_id" required>
+                            <option value="">Select Room</option>
+                            {% for room in rooms %}
+                            <option value="{{ room.id }}">{{ room.code }} - {{ room.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Time Slot</label>
+                        <select class="form-select" name="timeslot_id" required>
+                            <option value="">Select Slot</option>
+                            {% for slot in timeslots %}
+                            <option value="{{ slot.id }}">{{ slot.day }} - P{{ slot.period }} ({{ slot.start_time }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Batch (Optional for labs)</label>
+                        <select class="form-select" name="batch_id">
+                            <option value="">All Students</option>
+                            {% for batch in section.batches %}
+                            <option value="{{ batch.id }}">{{ batch.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addEntry()">Add Class</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Conflict Warning -->
+<div class="conflict-warning" id="conflictWarning" style="display: none;">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <span id="conflictMessage">Conflict detected!</span>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timetable-table th,
+.timetable-table td {
+    border: 1px solid rgba(0,0,0,0.1);
+}
+.time-header {
+    width: 100px;
+    text-align: center;
+}
+.day-header {
+    width: 18%;
+    text-align: center;
+}
+.time-cell {
+    background: rgba(251, 191, 36, 0.05);
+    text-align: center;
+    vertical-align: middle;
+}
+.period-num {
+    font-weight: 600;
+    color: var(--bs-warning);
+}
+.slot-cell {
+    padding: 0.5rem;
+    vertical-align: top;
+    min-height: 100px;
+    transition: all 0.2s;
+}
+.slot-cell.drag-over {
+    background: rgba(99, 102, 241, 0.1);
+    border: 2px dashed var(--primary);
+}
+.slot-cell.invalid-drop {
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px dashed var(--bs-danger);
+}
+.class-card {
+    padding: 0.5rem;
+    padding-left: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    position: relative;
+    cursor: move;
+    transition: all 0.2s;
+}
+.class-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.class-card.dragging {
+    opacity: 0.5;
+}
+.lecture-class {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05));
+    border-left: 3px solid var(--primary);
+}
+.lab-class {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
+    border-left: 3px solid var(--bs-success);
+}
+.drag-handle {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(0,0,0,0.3);
+}
+.delete-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    color: var(--bs-danger);
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: pointer;
+    padding: 2px 6px;
+}
+.class-card:hover .delete-btn {
+    opacity: 1;
+}
+.course-code {
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+.course-name {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.class-details {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+}
+.batch-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 0.6rem;
+    background: var(--bs-success);
+    color: white;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.unassigned-container {
+    min-height: 60px;
+    padding: 1rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    border: 2px dashed rgba(0,0,0,0.1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.fab-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 1000;
+}
+.fab-button:hover {
+    transform: scale(1.1);
+}
+.conflict-warning {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bs-danger);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+    z-index: 1000;
+}
+.lunch-break {
+    background: rgba(251, 191, 36, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const sectionId = {{ section.id }};
+let changes = [];
+let originalState = {};
+
+// Store original state
+document.querySelectorAll('.draggable').forEach(card => {
+    const entryId = card.dataset.entryId;
+    const cell = card.closest('.slot-cell');
+    originalState[entryId] = {
+        timeslotId: cell.dataset.timeslot,
+        day: cell.dataset.day,
+        period: cell.dataset.period
+    };
+});
+
+// Drag and Drop functionality
+document.querySelectorAll('.draggable').forEach(card => {
+    card.addEventListener('dragstart', handleDragStart);
+    card.addEventListener('dragend', handleDragEnd);
+});
+
+document.querySelectorAll('.droppable').forEach(cell => {
+    cell.addEventListener('dragover', handleDragOver);
+    cell.addEventListener('dragleave', handleDragLeave);
+    cell.addEventListener('drop', handleDrop);
+});
+
+// Unassigned container
+const unassignedContainer = document.getElementById('unassignedContainer');
+unassignedContainer.addEventListener('dragover', handleDragOver);
+unassignedContainer.addEventListener('dragleave', handleDragLeave);
+unassignedContainer.addEventListener('drop', handleDropUnassigned);
+
+let draggedCard = null;
+
+function handleDragStart(e) {
+    draggedCard = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.drag-over, .invalid-drop').forEach(el => {
+        el.classList.remove('drag-over', 'invalid-drop');
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Check for conflicts
+    const cell = e.target.closest('.droppable');
+    if (cell && draggedCard) {
+        const conflict = checkConflict(cell, draggedCard);
+        cell.classList.remove('drag-over', 'invalid-drop');
+        cell.classList.add(conflict ? 'invalid-drop' : 'drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    const cell = e.target.closest('.droppable');
+    if (cell) {
+        cell.classList.remove('drag-over', 'invalid-drop');
+    }
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const cell = e.target.closest('.droppable');
+    
+    if (cell && draggedCard) {
+        const conflict = checkConflict(cell, draggedCard);
+        if (!conflict) {
+            cell.appendChild(draggedCard);
+            recordChange(draggedCard.dataset.entryId, cell.dataset.timeslot);
+        } else {
+            showConflict(conflict);
+        }
+    }
+    
+    cell.classList.remove('drag-over', 'invalid-drop');
+}
+
+function handleDropUnassigned(e) {
+    e.preventDefault();
+    if (draggedCard) {
+        unassignedContainer.appendChild(draggedCard);
+        recordChange(draggedCard.dataset.entryId, null);
+        updateUnassignedCount();
+    }
+}
+
+function checkConflict(cell, card) {
+    const timeslotId = cell.dataset.timeslot;
+    const facultyId = card.dataset.facultyId;
+    const roomId = card.dataset.roomId;
+    const entryId = card.dataset.entryId;
+    
+    // Check existing cards in the cell
+    const existingCards = cell.querySelectorAll('.draggable');
+    for (const existing of existingCards) {
+        if (existing.dataset.entryId === entryId) continue;
+        
+        // Same faculty conflict
+        if (existing.dataset.facultyId === facultyId) {
+            return 'Faculty is already scheduled at this time';
+        }
+        
+        // Same room conflict
+        if (existing.dataset.roomId === roomId) {
+            return 'Room is already booked at this time';
+        }
+    }
+    
+    return null;
+}
+
+function showConflict(message) {
+    const warning = document.getElementById('conflictWarning');
+    document.getElementById('conflictMessage').textContent = message;
+    warning.style.display = 'block';
+    setTimeout(() => warning.style.display = 'none', 3000);
+}
+
+function recordChange(entryId, timeslotId) {
+    // Remove previous change for this entry
+    changes = changes.filter(c => c.entryId !== entryId);
+    
+    // Add new change
+    changes.push({
+        entryId: parseInt(entryId),
+        timeslotId: timeslotId ? parseInt(timeslotId) : null
+    });
+}
+
+function updateUnassignedCount() {
+    const count = unassignedContainer.querySelectorAll('.draggable').length;
+    document.getElementById('unassignedCount').textContent = count;
+}
+
+function deleteEntry(entryId) {
+    Swal.fire({
+        title: 'Delete this class?',
+        text: "This will remove the class from the timetable",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/timetable/entry/${entryId}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector(`[data-entry-id="${entryId}"]`).remove();
+                        showToast('Class removed', 'success');
+                    }
+                });
+        }
+    });
+}
+
+function saveChanges() {
+    if (changes.length === 0) {
+        showToast('No changes to save', 'info');
+        return;
+    }
+    
+    fetch('/timetable/update-entries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changes: changes })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Changes saved successfully', 'success');
+            changes = [];
+        } else {
+            showToast(data.message || 'Error saving changes', 'error');
+        }
+    });
+}
+
+function resetChanges() {
+    location.reload();
+}
+
+function addEntry() {
+    const form = document.getElementById('addEntryForm');
+    const formData = new FormData(form);
+    
+    fetch('/timetable/add-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            section_id: sectionId,
+            course_id: formData.get('course_id'),
+            faculty_id: formData.get('faculty_id'),
+            room_id: formData.get('room_id'),
+            timeslot_id: formData.get('timeslot_id'),
+            batch_id: formData.get('batch_id') || null
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Class added successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addEntryModal')).hide();
+            location.reload();
+        } else {
+            showToast(data.message || 'Error adding class', 'error');
+        }
+    });
+}
+</script>
+{% endblock %}

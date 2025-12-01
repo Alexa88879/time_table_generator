@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if mapping else 'Add' }} Mapping{% endblock %}
+{% block page_title %}{{ 'Edit' if mapping else 'Add New' }} Faculty-Course Mapping{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header border-0 bg-transparent">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('mapping.list_mappings') }}">Mappings</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ 'Edit' if mapping else 'Add New' }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('mapping.edit_mapping', id=mapping.id) if mapping else url_for('mapping.add_mapping') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Section *</label>
+                            <select class="form-select" name="section_id" id="sectionSelect" required>
+                                <option value="">Select Section</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}" 
+                                        data-semester="{{ section.semester }}"
+                                        {{ 'selected' if mapping and mapping.section_id == section.id else '' }}>
+                                    {{ section.name }} (Semester {{ section.semester }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Course *</label>
+                            <select class="form-select" name="course_id" id="courseSelect" required>
+                                <option value="">Select Section First</option>
+                                {% if mapping %}
+                                <option value="{{ mapping.course_id }}" selected>
+                                    {{ mapping.course.code }} - {{ mapping.course.name }}
+                                </option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Faculty *</label>
+                            <select class="form-select" name="faculty_id" required>
+                                <option value="">Select Faculty</option>
+                                {% for faculty in faculty_list %}
+                                <option value="{{ faculty.id }}" {{ 'selected' if mapping and mapping.faculty_id == faculty.id else '' }}>
+                                    {{ faculty.name }} ({{ faculty.department }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Session Type *</label>
+                            <select class="form-select" name="session_type" id="sessionType" required>
+                                <option value="lecture" {{ 'selected' if not mapping or mapping.session_type == 'lecture' else '' }}>Lecture</option>
+                                <option value="tutorial" {{ 'selected' if mapping and mapping.session_type == 'tutorial' else '' }}>Tutorial</option>
+                                <option value="lab" {{ 'selected' if mapping and mapping.session_type == 'lab' else '' }}>Lab</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4" id="batchDiv" style="display: none;">
+                            <label class="form-label">Batch (for Lab sessions)</label>
+                            <select class="form-select" name="batch_id" id="batchSelect">
+                                <option value="">All Students</option>
+                                {% if mapping and mapping.batch %}
+                                <option value="{{ mapping.batch_id }}" selected>{{ mapping.batch.name }}</option>
+                                {% endif %}
+                            </select>
+                            <small class="text-muted">Leave empty for lectures/tutorials that are for the whole section</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label">Weekly Hours</label>
+                            <input type="number" class="form-control" name="weekly_hours" 
+                                   value="{{ mapping.weekly_hours if mapping else '' }}"
+                                   min="1" max="10" placeholder="Auto-calculated from course">
+                            <small class="text-muted">Leave empty to use course default hours</small>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info" data-aos="fade-up">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> For lab courses, create separate mappings for each batch (G1, G2) if different faculty handle them.
+                    </div>
+                    
+                    <div class="d-flex justify-content-between pt-3">
+                        <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ 'Update' if mapping else 'Create' }} Mapping
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const courses = {{ courses|tojson|safe }};
+
+document.getElementById('sectionSelect').addEventListener('change', function() {
+    const semester = this.options[this.selectedIndex].dataset.semester;
+    const sectionId = this.value;
+    
+    // Filter courses by semester
+    const courseSelect = document.getElementById('courseSelect');
+    courseSelect.innerHTML = '<option value="">Select Course</option>';
+    
+    const semesterCourses = courses.filter(c => c.semester == semester);
+    semesterCourses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = `${course.code} - ${course.name}`;
+        option.dataset.isLab = course.is_lab;
+        courseSelect.appendChild(option);
+    });
+    
+    // Load batches
+    loadBatches(sectionId);
+});
+
+document.getElementById('sessionType').addEventListener('change', toggleBatchDiv);
+document.getElementById('courseSelect').addEventListener('change', function() {
+    const isLab = this.options[this.selectedIndex].dataset.isLab === 'true';
+    if (isLab) {
+        document.getElementById('sessionType').value = 'lab';
+    }
+    toggleBatchDiv();
+});
+
+function toggleBatchDiv() {
+    const sessionType = document.getElementById('sessionType').value;
+    document.getElementById('batchDiv').style.display = sessionType === 'lab' ? 'block' : 'none';
+}
+
+function loadBatches(sectionId) {
+    const batchSelect = document.getElementById('batchSelect');
+    batchSelect.innerHTML = '<option value="">All Students</option>';
+    
+    if (sectionId) {
+        fetch(`/api/batches/${sectionId}`)
+            .then(response => response.json())
+            .then(batches => {
+                batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch.id;
+                    option.textContent = batch.name;
+                    batchSelect.appendChild(option);
+                });
+            });
+    }
+}
+
+// Initialize
+toggleBatchDiv();
+{% if mapping %}
+loadBatches('{{ mapping.section_id }}');
+{% endif %}
+</script>
+{% endblock %}

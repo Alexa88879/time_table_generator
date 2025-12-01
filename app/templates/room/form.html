@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if room else 'Add' }} Room{% endblock %}
+{% block page_title %}{{ 'Edit' if room else 'Add New' }} {{ 'Lab' if is_lab else 'Room' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header border-0 bg-transparent">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url_for('room.list_rooms') }}">Rooms & Labs</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ 'Edit' if room else 'Add New' }}</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('room.edit_room', id=room.id) if room else url_for('room.add_room') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="code" name="code" 
+                                       value="{{ room.code if room else '' }}" 
+                                       placeholder="Room Code" required>
+                                <label for="code">Room Code *</label>
+                            </div>
+                            <small class="text-muted">e.g., CR101, LAB-A01</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ room.name if room else '' }}" 
+                                       placeholder="Room Name" required>
+                                <label for="name">Room Name *</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <input type="number" class="form-control" id="capacity" name="capacity" 
+                                       value="{{ room.capacity if room else 60 }}" 
+                                       min="1" max="500" placeholder="Capacity" required>
+                                <label for="capacity">Capacity *</label>
+                            </div>
+                            <small class="text-muted">Number of seats/workstations</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="building" name="building">
+                                    <option value="Main Block" {{ 'selected' if not room or room.building == 'Main Block' else '' }}>Main Block</option>
+                                    <option value="Block A" {{ 'selected' if room and room.building == 'Block A' else '' }}>Block A</option>
+                                    <option value="Block B" {{ 'selected' if room and room.building == 'Block B' else '' }}>Block B</option>
+                                    <option value="Block C" {{ 'selected' if room and room.building == 'Block C' else '' }}>Block C</option>
+                                    <option value="Lab Complex" {{ 'selected' if room and room.building == 'Lab Complex' else '' }}>Lab Complex</option>
+                                    <option value="Workshop" {{ 'selected' if room and room.building == 'Workshop' else '' }}>Workshop</option>
+                                </select>
+                                <label for="building">Building</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="floor" name="floor">
+                                    <option value="0" {{ 'selected' if not room or room.floor == 0 else '' }}>Ground Floor</option>
+                                    <option value="1" {{ 'selected' if room and room.floor == 1 else '' }}>1st Floor</option>
+                                    <option value="2" {{ 'selected' if room and room.floor == 2 else '' }}>2nd Floor</option>
+                                    <option value="3" {{ 'selected' if room and room.floor == 3 else '' }}>3rd Floor</option>
+                                    <option value="4" {{ 'selected' if room and room.floor == 4 else '' }}>4th Floor</option>
+                                    <option value="5" {{ 'selected' if room and room.floor == 5 else '' }}>5th Floor</option>
+                                </select>
+                                <label for="floor">Floor</label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-check form-switch mt-3">
+                                <input type="checkbox" class="form-check-input" id="is_lab" name="is_lab"
+                                       {{ 'checked' if (room and room.is_lab) or is_lab else '' }}
+                                       onchange="toggleLabFields()">
+                                <label class="form-check-label" for="is_lab">This is a Laboratory</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Lab-specific fields -->
+                    <div id="labFields" class="row" style="display: none;">
+                        <hr class="my-3">
+                        <h6 class="mb-3 text-success">
+                            <i class="fas fa-flask me-2"></i>Laboratory Details
+                        </h6>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-floating">
+                                <select class="form-select" id="lab_type" name="lab_type">
+                                    <option value="">Select Lab Type</option>
+                                    <option value="Computer Lab" {{ 'selected' if room and room.lab_type == 'Computer Lab' else '' }}>Computer Lab</option>
+                                    <option value="Programming Lab" {{ 'selected' if room and room.lab_type == 'Programming Lab' else '' }}>Programming Lab</option>
+                                    <option value="Network Lab" {{ 'selected' if room and room.lab_type == 'Network Lab' else '' }}>Network Lab</option>
+                                    <option value="Hardware Lab" {{ 'selected' if room and room.lab_type == 'Hardware Lab' else '' }}>Hardware Lab</option>
+                                    <option value="Electronics Lab" {{ 'selected' if room and room.lab_type == 'Electronics Lab' else '' }}>Electronics Lab</option>
+                                    <option value="Physics Lab" {{ 'selected' if room and room.lab_type == 'Physics Lab' else '' }}>Physics Lab</option>
+                                    <option value="Chemistry Lab" {{ 'selected' if room and room.lab_type == 'Chemistry Lab' else '' }}>Chemistry Lab</option>
+                                    <option value="AI/ML Lab" {{ 'selected' if room and room.lab_type == 'AI/ML Lab' else '' }}>AI/ML Lab</option>
+                                    <option value="Project Lab" {{ 'selected' if room and room.lab_type == 'Project Lab' else '' }}>Project Lab</option>
+                                </select>
+                                <label for="lab_type">Lab Type</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Facilities -->
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <label class="form-label">Facilities Available</label>
+                            <div class="facilities-grid">
+                                {% set current_facilities = room.facilities.split(',') if room and room.facilities else [] %}
+                                {% for facility in ['Projector', 'AC', 'Whiteboard', 'Smart Board', 'Audio System', 'Video Conferencing', 'Computers', 'Printer', 'Scanner', 'Internet', 'WiFi', 'Power Backup'] %}
+                                <label class="facility-checkbox">
+                                    <input type="checkbox" name="facilities" value="{{ facility }}"
+                                           {{ 'checked' if facility in current_facilities else '' }}>
+                                    <span class="facility-label">
+                                        <i class="fas fa-check me-1"></i>{{ facility }}
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
+                                       {{ 'checked' if not room or room.is_active else '' }}>
+                                <label class="form-check-label" for="is_active">Active Status</label>
+                            </div>
+                            <small class="text-muted">Inactive rooms won't be used in scheduling</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between pt-3">
+                        <a href="{{ url_for('room.list_rooms') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{{ 'Update' if room else 'Create' }} Room
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.facilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+.facility-checkbox {
+    cursor: pointer;
+}
+.facility-checkbox input {
+    display: none;
+}
+.facility-label {
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: var(--glass-bg);
+    border: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+.facility-label i {
+    display: none;
+    color: var(--bs-success);
+}
+.facility-checkbox input:checked + .facility-label {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: var(--bs-success);
+}
+.facility-checkbox input:checked + .facility-label i {
+    display: inline;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleLabFields() {
+    const isLab = document.getElementById('is_lab').checked;
+    document.getElementById('labFields').style.display = isLab ? 'flex' : 'none';
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleLabFields();
+});
+</script>
+{% endblock %}

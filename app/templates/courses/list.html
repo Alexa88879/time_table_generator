@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Course Catalog{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <p class="text-muted mb-0">AKTU CSE NEP 2020 Curriculum - 80 Courses</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('upload.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-file-excel me-2"></i>Import Courses
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Semester Filter -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-12">
+        <div class="glass-card p-3">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="fw-medium me-2">Filter by Semester:</span>
+                <button class="btn btn-sm btn-primary semester-btn active" data-semester="all">All</button>
+                {% for sem in range(1, 9) %}
+                <button class="btn btn-sm btn-outline-primary semester-btn" data-semester="{{ sem }}">
+                    Sem {{ sem }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-primary-subtle text-primary mx-auto mb-3">
+                <i class="fas fa-book"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ courses|length }}</h3>
+            <p class="text-muted mb-0">Total Courses</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-info-subtle text-info mx-auto mb-3">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ courses|rejectattr('is_lab')|rejectattr('is_elective')|list|length }}</h3>
+            <p class="text-muted mb-0">Core Theory</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-success-subtle text-success mx-auto mb-3">
+                <i class="fas fa-flask"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ courses|selectattr('is_lab')|list|length }}</h3>
+            <p class="text-muted mb-0">Lab Courses</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-warning-subtle text-warning mx-auto mb-3">
+                <i class="fas fa-list-alt"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ courses|selectattr('is_elective')|list|length }}</h3>
+            <p class="text-muted mb-0">Electives</p>
+        </div>
+    </div>
+</div>
+
+<!-- Courses by Semester -->
+{% for semester in range(1, 9) %}
+<div class="semester-section mb-4" data-semester="{{ semester }}" data-aos="fade-up">
+    <div class="d-flex align-items-center mb-3">
+        <h5 class="mb-0">
+            <span class="badge bg-gradient-primary me-2">Semester {{ semester }}</span>
+            <small class="text-muted">(Year {{ ((semester + 1) // 2) }})</small>
+        </h5>
+        <span class="badge bg-secondary ms-auto">{{ courses|selectattr('semester', 'equalto', semester)|list|length }} courses</span>
+    </div>
+    
+    <div class="glass-card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Course Name</th>
+                        <th>Credits</th>
+                        <th>L-T-P</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses if course.semester == semester %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary">{{ course.code }}</span>
+                        </td>
+                        <td>{{ course.name }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ course.credits }}</span>
+                        </td>
+                        <td>
+                            {{ course.lecture_hours or 0 }}-{{ course.tutorial_hours or 0 }}-{{ course.practical_hours or 0 }}
+                        </td>
+                        <td>
+                            {% if course.category == 'Core' %}
+                            <span class="badge bg-primary">Core</span>
+                            {% elif course.category == 'BSC' %}
+                            <span class="badge bg-success">BSC</span>
+                            {% elif course.category == 'ESC' %}
+                            <span class="badge bg-info">ESC</span>
+                            {% elif course.category == 'PCC' %}
+                            <span class="badge bg-warning text-dark">PCC</span>
+                            {% elif course.category == 'PEC' %}
+                            <span class="badge bg-secondary">PEC</span>
+                            {% elif course.category == 'OEC' %}
+                            <span class="badge bg-dark">OEC</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ course.category }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if course.is_lab %}
+                            <span class="badge bg-success">Lab</span>
+                            {% elif course.is_elective %}
+                            <span class="badge bg-warning text-dark">Elective</span>
+                            {% else %}
+                            <span class="badge bg-primary-subtle text-primary">Theory</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+.semester-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.semester-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        // Update button states
+        document.querySelectorAll('.semester-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filter sections
+        const semester = this.dataset.semester;
+        document.querySelectorAll('.semester-section').forEach(section => {
+            if (semester === 'all' || section.dataset.semester === semester) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

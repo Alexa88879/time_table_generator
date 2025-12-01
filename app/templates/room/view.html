@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ room.name }} - Room{% endblock %}
+{% block page_title %}Room Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('room.list_rooms') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div>
+                <a href="{{ url_for('room.edit_room', id=room.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Room Info Card -->
+    <div class="col-lg-4" data-aos="fade-right">
+        <div class="glass-card h-100">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="icon-box-lg mx-auto bg-{{ 'info' if room.is_lab else 'primary' }}-subtle text-{{ 'info' if room.is_lab else 'primary' }}">
+                        <i class="fas fa-{{ 'flask' if room.is_lab else 'door-open' }} fa-2x"></i>
+                    </div>
+                </div>
+                
+                <h4 class="text-center mb-1">{{ room.name }}</h4>
+                <p class="text-muted text-center mb-3">{{ room.room_id }}</p>
+                
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-{{ 'info' if room.is_lab else 'primary' }}-subtle text-{{ 'info' if room.is_lab else 'primary' }}">
+                        {{ room.room_type }}
+                    </span>
+                    {% if room.lab_type %}
+                    <span class="badge bg-warning-subtle text-warning">{{ room.lab_type }}</span>
+                    {% endif %}
+                    <span class="badge bg-{{ 'success' if room.is_available else 'danger' }}-subtle text-{{ 'success' if room.is_available else 'danger' }}">
+                        {{ 'Available' if room.is_available else 'Unavailable' }}
+                    </span>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="mb-0 text-primary">{{ room.capacity }}</h5>
+                        <small class="text-muted">Capacity</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="mb-0 text-success">{{ room.floor or '-' }}</h5>
+                        <small class="text-muted">Floor</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="text-start">
+                    {% if room.building %}
+                    <p class="mb-2">
+                        <i class="fas fa-building text-muted me-2"></i>
+                        {{ room.building }}
+                    </p>
+                    {% endif %}
+                    <p class="mb-2">
+                        <i class="fas fa-{{ 'check text-success' if room.has_projector else 'times text-danger' }} me-2"></i>
+                        Projector
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-{{ 'check text-success' if room.has_ac else 'times text-danger' }} me-2"></i>
+                        Air Conditioning
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Schedule -->
+    <div class="col-lg-8" data-aos="fade-left">
+        <div class="glass-card h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-calendar me-2 text-primary"></i>Room Schedule</h5>
+            </div>
+            <div class="card-body">
+                {% if entries %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Faculty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                            <tr>
+                                <td>{{ entry.day }}</td>
+                                <td>{{ entry.start_time }} - {{ entry.end_time }}</td>
+                                <td>
+                                    <span class="badge bg-secondary me-1">{{ entry.course.code }}</span>
+                                    {{ entry.course.name }}
+                                </td>
+                                <td>Sem {{ entry.section.semester }} - {{ entry.section.name }}</td>
+                                <td>{{ entry.faculty.name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                    <p class="mb-0">No scheduled classes in this room</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

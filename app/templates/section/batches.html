@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}{{ section.name }} - Batches{% endblock %}
+{% block page_title %}Manage Batches{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('section.view_section', id=section.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Section
+                </a>
+            </div>
+            <div>
+                <h5 class="mb-0">{{ section.name }} - Semester {{ section.semester }}</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Batch Form -->
+    <div class="col-lg-4" data-aos="fade-right">
+        <div class="glass-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-plus me-2 text-primary"></i>Add New Batch</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add">
+                    
+                    <div class="mb-3">
+                        <label for="batch_name" class="form-label">Batch Name</label>
+                        <input type="text" class="form-control" id="batch_name" name="batch_name" 
+                               placeholder="e.g., G3" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="student_count" class="form-label">Number of Students</label>
+                        <input type="number" class="form-control" id="student_count" name="student_count" 
+                               value="30" min="1" max="100" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i>Add Batch
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Section Summary -->
+        <div class="glass-card mt-4">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-3">Section Summary</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <h4 class="text-primary mb-0">{{ section.total_students }}</h4>
+                        <small class="text-muted">Total Students</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success mb-0">{{ section.batches|length }}</h4>
+                        <small class="text-muted">Batches</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Existing Batches -->
+    <div class="col-lg-8" data-aos="fade-left">
+        <div class="glass-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-users me-2 text-success"></i>Existing Batches</h5>
+            </div>
+            <div class="card-body">
+                {% if section.batches %}
+                <div class="row g-3">
+                    {% for batch in section.batches %}
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ batch.name }}</h5>
+                                    <small class="text-muted">{{ batch.student_count }} students</small>
+                                </div>
+                                <form method="POST" class="d-inline" onsubmit="return confirm('Delete this batch?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="batch_id" value="{{ batch.id }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <p class="mb-0">No batches created yet</p>
+                    <p class="small">Add batches for lab group rotation</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}{{ faculty.name }} - Faculty{% endblock %}
+{% block page_title %}Faculty Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('faculty.list_faculty') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div>
+                <a href="{{ url_for('faculty.edit_faculty', id=faculty.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Faculty Info Card -->
+    <div class="col-lg-4" data-aos="fade-right">
+        <div class="glass-card h-100">
+            <div class="card-body text-center">
+                <div class="avatar-xl mx-auto mb-3">
+                    <span class="avatar-text bg-primary-subtle text-primary">
+                        {{ faculty.name[:2].upper() }}
+                    </span>
+                </div>
+                <h4 class="mb-1">{{ faculty.name }}</h4>
+                <p class="text-muted mb-3">{{ faculty.code }}</p>
+                
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    {% if faculty.designation %}
+                    <span class="badge bg-info-subtle text-info">{{ faculty.designation }}</span>
+                    {% endif %}
+                    <span class="badge bg-{{ 'success' if faculty.is_active else 'danger' }}-subtle text-{{ 'success' if faculty.is_active else 'danger' }}">
+                        {{ 'Active' if faculty.is_active else 'Inactive' }}
+                    </span>
+                </div>
+                
+                <hr>
+                
+                <div class="text-start">
+                    {% if faculty.email %}
+                    <p class="mb-2">
+                        <i class="fas fa-envelope text-muted me-2"></i>
+                        <a href="mailto:{{ faculty.email }}">{{ faculty.email }}</a>
+                    </p>
+                    {% endif %}
+                    {% if faculty.phone %}
+                    <p class="mb-2">
+                        <i class="fas fa-phone text-muted me-2"></i>
+                        <a href="tel:{{ faculty.phone }}">{{ faculty.phone }}</a>
+                    </p>
+                    {% endif %}
+                    <p class="mb-2">
+                        <i class="fas fa-building text-muted me-2"></i>
+                        {{ faculty.department }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Workload Info -->
+    <div class="col-lg-8" data-aos="fade-left">
+        <div class="glass-card h-100">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-clock me-2 text-primary"></i>Workload Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 text-center">
+                            <h2 class="mb-1 text-primary">{{ faculty.max_hours_per_week }}</h2>
+                            <p class="text-muted mb-0">Max Hours / Week</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 text-center">
+                            <h2 class="mb-1 text-success">{{ faculty.max_hours_per_day }}</h2>
+                            <p class="text-muted mb-0">Max Hours / Day</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="mb-3"><i class="fas fa-book me-2 text-info"></i>Course Assignments</h6>
+                {% if mappings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Section</th>
+                                <th>Type</th>
+                                <th>Batch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in mappings %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary me-1">{{ m.course.code }}</span>
+                                    {{ m.course.name }}
+                                </td>
+                                <td>Sem {{ m.section.semester }} - {{ m.section.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if m.session_type == 'lab' else 'primary' }}">
+                                        {{ m.session_type.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ m.batch.name if m.batch else 'All' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p class="mb-0">No course assignments yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

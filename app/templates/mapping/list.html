@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+{% block title %}Faculty-Course Mappings{% endblock %}
+{% block page_title %}Faculty-Course Mappings{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <p class="text-muted mb-0">Assign faculty to courses and sections</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkModal">
+                    <i class="fas fa-layer-group me-2"></i>Bulk Assign
+                </button>
+                <a href="{{ url_for('mapping.add_mapping') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Mapping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="glass-card p-3 mb-4" data-aos="fade-up">
+    <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">Section</label>
+            <select class="form-select" name="section" onchange="this.form.submit()">
+                <option value="">All Sections</option>
+                {% for section in sections %}
+                <option value="{{ section.id }}" {{ 'selected' if request.args.get('section')|int == section.id else '' }}>
+                    {{ section.name }} (Sem {{ section.semester }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Faculty</label>
+            <select class="form-select" name="faculty" onchange="this.form.submit()">
+                <option value="">All Faculty</option>
+                {% for faculty in faculty_list %}
+                <option value="{{ faculty.id }}" {{ 'selected' if request.args.get('faculty')|int == faculty.id else '' }}>
+                    {{ faculty.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Session Type</label>
+            <select class="form-select" name="session_type" onchange="this.form.submit()">
+                <option value="">All Types</option>
+                <option value="lecture" {{ 'selected' if request.args.get('session_type') == 'lecture' else '' }}>Lecture</option>
+                <option value="tutorial" {{ 'selected' if request.args.get('session_type') == 'tutorial' else '' }}>Tutorial</option>
+                <option value="lab" {{ 'selected' if request.args.get('session_type') == 'lab' else '' }}>Lab</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-refresh me-2"></i>Reset Filters
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Mappings Table -->
+<div class="glass-card" data-aos="fade-up" data-aos-delay="200">
+    <div class="table-responsive">
+        <table id="mappingsTable" class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Faculty</th>
+                    <th>Section</th>
+                    <th>Type</th>
+                    <th>Batch</th>
+                    <th>Weekly Hrs</th>
+                    <th width="100">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mapping in mappings %}
+                <tr>
+                    <td>
+                        <div>
+                            <span class="badge bg-primary-subtle text-primary">{{ mapping.course.code }}</span>
+                            <span class="ms-2">{{ mapping.course.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-xs me-2">
+                                <span class="avatar-title rounded-circle bg-gradient-primary">
+                                    {{ mapping.faculty.name[0] }}
+                                </span>
+                            </div>
+                            {{ mapping.faculty.name }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-info-subtle text-info">{{ mapping.section.name }}</span>
+                    </td>
+                    <td>
+                        {% if mapping.session_type == 'lecture' %}
+                        <span class="badge bg-primary">Lecture</span>
+                        {% elif mapping.session_type == 'tutorial' %}
+                        <span class="badge bg-warning text-dark">Tutorial</span>
+                        {% else %}
+                        <span class="badge bg-success">Lab</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if mapping.batch %}
+                        <span class="badge bg-secondary">{{ mapping.batch.name }}</span>
+                        {% else %}
+                        <span class="text-muted">All</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark">{{ mapping.weekly_hours or '-' }} hrs</span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('mapping.edit_mapping', id=mapping.id) }}" 
+                               class="btn btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn btn-outline-danger" 
+                                    onclick="confirmDelete('{{ url_for('mapping.delete_mapping', id=mapping.id) }}')"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5">
+                        <i class="fas fa-link fa-3x text-muted mb-3"></i>
+                        <h5>No Mappings Found</h5>
+                        <p class="text-muted mb-3">Create mappings to assign faculty to courses</p>
+                        <a href="{{ url_for('mapping.add_mapping') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add First Mapping
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+{% if mappings %}
+<div class="row mt-4">
+    <div class="col-md-4" data-aos="fade-up">
+        <div class="glass-card p-4">
+            <h6 class="text-muted mb-3">By Session Type</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fas fa-chalkboard-teacher me-2 text-primary"></i>Lectures</span>
+                <span class="badge bg-primary">{{ mappings|selectattr('session_type', 'equalto', 'lecture')|list|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span><i class="fas fa-users me-2 text-warning"></i>Tutorials</span>
+                <span class="badge bg-warning text-dark">{{ mappings|selectattr('session_type', 'equalto', 'tutorial')|list|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-flask me-2 text-success"></i>Labs</span>
+                <span class="badge bg-success">{{ mappings|selectattr('session_type', 'equalto', 'lab')|list|length }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card p-4">
+            <h6 class="text-muted mb-3">Coverage</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Sections Covered</span>
+                <span class="badge bg-info">{{ mappings|map(attribute='section_id')|unique|list|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span>Faculty Assigned</span>
+                <span class="badge bg-info">{{ mappings|map(attribute='faculty_id')|unique|list|length }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Courses Mapped</span>
+                <span class="badge bg-info">{{ mappings|map(attribute='course_id')|unique|list|length }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-4">
+            <h6 class="text-muted mb-3">Quick Actions</h6>
+            <a href="{{ url_for('upload.index') }}" class="btn btn-outline-primary w-100 mb-2">
+                <i class="fas fa-file-excel me-2"></i>Upload from Excel
+            </a>
+            <a href="{{ url_for('upload.download_template', data_type='mappings') }}" class="btn btn-outline-success w-100">
+                <i class="fas fa-download me-2"></i>Download Template
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Bulk Assignment Modal -->
+<div class="modal fade" id="bulkModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-layer-group me-2 text-primary"></i>
+                    Bulk Faculty Assignment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('mapping.quick_add_mapping') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Select Section *</label>
+                            <select class="form-select" name="section_id" required id="bulkSection">
+                                <option value="">Choose a section</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}" data-semester="{{ section.semester }}">
+                                    {{ section.name }} (Sem {{ section.semester }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Session Type *</label>
+                            <select class="form-select" name="session_type" required id="bulkSessionType">
+                                <option value="lecture">Lecture</option>
+                                <option value="tutorial">Tutorial</option>
+                                <option value="lab">Lab</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4" id="batchSelectRow" style="display: none;">
+                        <div class="col-12">
+                            <label class="form-label">Select Batch (for Lab)</label>
+                            <select class="form-select" name="batch_id" id="bulkBatch">
+                                <option value="">All Batches</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Select courses and assign faculty for each. Only courses from the selected semester will be shown.
+                    </div>
+                    
+                    <div id="courseAssignments">
+                        <p class="text-muted">Select a section to load courses</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="bulkSubmit" disabled>
+                            <i class="fas fa-save me-2"></i>Create Mappings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-xs {
+    width: 28px;
+    height: 28px;
+}
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#mappingsTable').DataTable({
+        pageLength: 15,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: 6 }
+        ]
+    });
+});
+
+// Bulk assignment section change
+document.getElementById('bulkSection').addEventListener('change', function() {
+    const semester = this.options[this.selectedIndex].dataset.semester;
+    loadCoursesForBulk(semester);
+    loadBatchesForBulk(this.value);
+});
+
+document.getElementById('bulkSessionType').addEventListener('change', function() {
+    const isLab = this.value === 'lab';
+    document.getElementById('batchSelectRow').style.display = isLab ? 'block' : 'none';
+});
+
+function loadCoursesForBulk(semester) {
+    const container = document.getElementById('courseAssignments');
+    
+    // This would ideally be an AJAX call
+    container.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Loading courses for Semester ${semester}...</p>
+        </div>
+    `;
+    
+    // Fetch courses via AJAX
+    fetch(`/api/courses/${semester}`)
+        .then(response => response.json())
+        .then(courses => {
+            let html = '';
+            courses.forEach((course, index) => {
+                html += `
+                    <div class="course-assignment-row d-flex gap-2 mb-2 align-items-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input course-check" name="courses[]" 
+                                   value="${course.id}" id="course${course.id}">
+                        </div>
+                        <label class="flex-grow-1" for="course${course.id}">
+                            <span class="badge bg-primary-subtle text-primary me-2">${course.code}</span>
+                            ${course.name}
+                        </label>
+                        <select class="form-select form-select-sm" name="faculty_${course.id}" style="width: 200px;">
+                            <option value="">Select Faculty</option>
+                            {% for f in faculty_list %}
+                            <option value="{{ f.id }}">{{ f.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                `;
+            });
+            
+            if (courses.length === 0) {
+                html = '<p class="text-muted">No courses found for this semester</p>';
+            }
+            
+            container.innerHTML = html;
+            
+            // Enable submit button when courses are selected
+            document.querySelectorAll('.course-check').forEach(cb => {
+                cb.addEventListener('change', updateSubmitButton);
+            });
+        })
+        .catch(() => {
+            container.innerHTML = '<p class="text-danger">Error loading courses</p>';
+        });
+}
+
+function loadBatchesForBulk(sectionId) {
+    const select = document.getElementById('bulkBatch');
+    select.innerHTML = '<option value="">All Batches</option>';
+    
+    if (sectionId) {
+        fetch(`/api/batches/${sectionId}`)
+            .then(response => response.json())
+            .then(batches => {
+                batches.forEach(batch => {
+                    select.innerHTML += `<option value="${batch.id}">${batch.name}</option>`;
+                });
+            });
+    }
+}
+
+function updateSubmitButton() {
+    const checked = document.querySelectorAll('.course-check:checked').length;
+    document.getElementById('bulkSubmit').disabled = checked === 0;
+}
+
+function confirmDelete(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This mapping will be permanently deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+</script>
+{% endblock %}

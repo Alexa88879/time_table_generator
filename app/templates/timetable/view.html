@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+{% block title %}Timetable - {{ section.name }}{% endblock %}
+{% block page_title %}Timetable: {{ section.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge bg-primary me-2">Semester {{ section.semester }}</span>
+                <span class="badge bg-info">{{ entries|length }} classes scheduled</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('export.export_section_pdf', section_id=section.id) }}"
+                    class="btn btn-outline-danger">
+                    <i class="fas fa-file-pdf me-2"></i>PDF
+                </a>
+                <a href="{{ url_for('export.export_section_excel', section_id=section.id) }}"
+                    class="btn btn-outline-success">
+                    <i class="fas fa-file-excel me-2"></i>Excel
+                </a>
+                <a href="{{ url_for('timetable.edit', section_id=section.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+                <a href="{{ url_for('timetable.generate') }}" class="btn btn-primary">
+                    <i class="fas fa-sync me-2"></i>Regenerate
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Toggle -->
+<div class="row mb-4" data-aos="fade-up">
+    <div class="col-12">
+        <div class="btn-group" role="group">
+            <input type="radio" class="btn-check" name="viewType" id="sectionView" checked>
+            <label class="btn btn-outline-primary" for="sectionView">
+                <i class="fas fa-users me-2"></i>Section View
+            </label>
+
+            <input type="radio" class="btn-check" name="viewType" id="batchView">
+            <label class="btn btn-outline-primary" for="batchView">
+                <i class="fas fa-layer-group me-2"></i>Batch View
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- Section Timetable -->
+<div class="glass-card mb-4" data-aos="fade-up" data-aos-delay="100" id="sectionTimetable">
+    <div class="table-responsive">
+        <table class="table table-bordered timetable-table mb-0">
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th class="time-header">Time</th>
+                    {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                    <th class="day-header">{{ day }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for period in range(1, 9) %}
+                {% set period_times = {
+                1: '09:10 - 10:00',
+                2: '10:00 - 10:50',
+                3: '10:50 - 11:40',
+                4: '11:40 - 12:30',
+                5: '01:30 - 02:20',
+                6: '02:20 - 03:10',
+                7: '03:10 - 04:00',
+                8: '04:00 - 04:50'
+                } %}
+
+                {% if period == 5 %}
+                <tr class="lunch-break">
+                    <td colspan="6" class="text-center">
+                        <i class="fas fa-utensils me-2"></i>Lunch Break (12:30 - 01:30)
+                    </td>
+                </tr>
+                {% endif %}
+
+                <tr>
+                    <td class="time-cell">
+                        <div class="period-num">P{{ period }}</div>
+                        <div class="time-range">{{ period_times[period] }}</div>
+                    </td>
+
+                    {% for day_code in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                    {% set slot_entries = entries|selectattr('timeslot.day', 'equalto',
+                    day_code)|selectattr('timeslot.period', 'equalto', period)|list %}
+
+                    <td class="slot-cell {% if slot_entries %}has-class{% endif %}">
+                        {% for entry in slot_entries %}
+                        <div class="class-card {{ 'lab-class' if entry.course.is_lab else 'lecture-class' }}">
+                            <div class="course-code">{{ entry.course.code }}</div>
+                            <div class="course-name">{{ entry.course.name|truncate(25) }}</div>
+                            <div class="class-details">
+                                <span><i class="fas fa-user me-1"></i>{{ entry.faculty.name|truncate(15) }}</span>
+                                <span><i class="fas fa-door-open me-1"></i>{{ entry.room.code }}</span>
+                            </div>
+                            {% if entry.batch %}
+                            <span class="batch-badge">{{ entry.batch.name }}</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Batch-wise Timetables -->
+{% if section.batches %}
+<div id="batchTimetables" style="display: none;">
+    {% for batch in section.batches %}
+    <div class="glass-card mb-4" data-aos="fade-up">
+        <div class="card-header bg-transparent">
+            <h5 class="mb-0">
+                <i class="fas fa-layer-group me-2 text-success"></i>
+                {{ batch.name }} - Lab Schedule
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered timetable-table mb-0">
+                <thead class="bg-success text-white">
+                    <tr>
+                        <th class="time-header">Time</th>
+                        {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] %}
+                        <th class="day-header">{{ day }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for period in range(1, 9) %}
+                    {% if period == 5 %}
+                    <tr class="lunch-break">
+                        <td colspan="6" class="text-center">
+                            <i class="fas fa-utensils me-2"></i>Lunch Break
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <tr>
+                        <td class="time-cell">
+                            <div class="period-num">P{{ period }}</div>
+                        </td>
+
+                        {% for day_code in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                        {% set batch_entries = entries|selectattr('timeslot.day', 'equalto',
+                        day_code)|selectattr('timeslot.period', 'equalto', period)|selectattr('batch_id', 'equalto',
+                        batch.id)|list %}
+                        {% set section_entries = entries|selectattr('timeslot.day', 'equalto',
+                        day_code)|selectattr('timeslot.period', 'equalto', period)|rejectattr('batch_id')|list %}
+
+                        <td class="slot-cell">
+                            {% for entry in batch_entries %}
+                            <div class="class-card lab-class">
+                                <div class="course-code">{{ entry.course.code }}</div>
+                                <div class="course-name">{{ entry.course.name|truncate(20) }}</div>
+                                <div class="class-details">
+                                    <span>{{ entry.room.code }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% for entry in section_entries %}
+                            <div class="class-card lecture-class">
+                                <div class="course-code">{{ entry.course.code }}</div>
+                            </div>
+                            {% endfor %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Legend -->
+<div class="row mt-4">
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-3">
+            <h6 class="mb-3">Legend</h6>
+            <div class="d-flex flex-wrap gap-3">
+                <div class="d-flex align-items-center">
+                    <div class="legend-box lecture-class me-2"></div>
+                    <span>Lecture/Tutorial</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="legend-box lab-class me-2"></div>
+                    <span>Lab Session</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card p-3">
+            <h6 class="mb-3">Statistics</h6>
+            <div class="row text-center">
+                <div class="col-4">
+                    <h4 class="mb-0 text-primary">{{ entries|selectattr('session_type', 'equalto',
+                        'lecture')|list|length }}</h4>
+                    <small class="text-muted">Lectures</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="mb-0 text-warning">{{ entries|selectattr('session_type', 'equalto',
+                        'tutorial')|list|length }}</h4>
+                    <small class="text-muted">Tutorials</small>
+                </div>
+                <div class="col-4">
+                    <h4 class="mb-0 text-success">{{ entries|selectattr('session_type', 'equalto', 'lab')|list|length }}
+                    </h4>
+                    <small class="text-muted">Labs</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timetable-table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .timetable-table th,
+    .timetable-table td {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .time-header {
+        width: 100px;
+        text-align: center;
+    }
+
+    .day-header {
+        width: 18%;
+        text-align: center;
+    }
+
+    .time-cell {
+        background: rgba(99, 102, 241, 0.05);
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .period-num {
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .time-range {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .slot-cell {
+        padding: 0.5rem;
+        vertical-align: top;
+        min-height: 80px;
+    }
+
+    .slot-cell.has-class {
+        background: rgba(99, 102, 241, 0.02);
+    }
+
+    .class-card {
+        padding: 0.5rem;
+        border-radius: 8px;
+        margin-bottom: 0.25rem;
+        position: relative;
+    }
+
+    .lecture-class {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        border-left: 3px solid var(--primary);
+    }
+
+    .lab-class {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+        border-left: 3px solid var(--bs-success);
+    }
+
+    .course-code {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+    }
+
+    .course-name {
+        font-size: 0.75rem;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .class-details {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .batch-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        font-size: 0.65rem;
+        background: var(--bs-success);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .lunch-break {
+        background: rgba(251, 191, 36, 0.1);
+    }
+
+    .lunch-break td {
+        padding: 0.5rem;
+        font-weight: 500;
+        color: var(--bs-warning);
+    }
+
+    .legend-box {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('input[name="viewType"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            if (this.id === 'sectionView') {
+                document.getElementById('sectionTimetable').style.display = 'block';
+                document.getElementById('batchTimetables').style.display = 'none';
+            } else {
+                document.getElementById('sectionTimetable').style.display = 'none';
+                document.getElementById('batchTimetables').style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}

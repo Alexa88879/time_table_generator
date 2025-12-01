@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% block title %}Faculty Management{% endblock %}
+{% block page_title %}Faculty Management{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <p class="text-muted mb-0">Manage faculty members and their preferences</p>
+            </div>
+            <div>
+                        <a href="{{ url_for('faculty.add_faculty') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Faculty
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-primary-subtle text-primary mx-auto mb-3">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ faculty_list|length }}</h3>
+            <p class="text-muted mb-0">Total Faculty</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-success-subtle text-success mx-auto mb-3">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ faculty_list|selectattr('is_active')|list|length }}</h3>
+            <p class="text-muted mb-0">Active</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-warning-subtle text-warning mx-auto mb-3">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ faculty_list|rejectattr('is_active')|list|length }}</h3>
+            <p class="text-muted mb-0">Inactive</p>
+        </div>
+    </div>
+    <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+        <div class="glass-card p-4 text-center">
+            <div class="stat-icon bg-info-subtle text-info mx-auto mb-3">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <h3 class="fw-bold mb-1">{{ faculty_list|map(attribute='max_hours')|sum }}</h3>
+            <p class="text-muted mb-0">Total Hours/Week</p>
+        </div>
+    </div>
+</div>
+
+<!-- Faculty Table -->
+<div class="glass-card" data-aos="fade-up" data-aos-delay="500">
+    <div class="table-responsive">
+        <table id="facultyTable" class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Department</th>
+                    <th>Max Hours</th>
+                    <th>Status</th>
+                    <th>Preferences</th>
+                    <th width="150">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for faculty in faculty_list %}
+                <tr>
+                    <td>
+                        <span class="badge bg-primary-subtle text-primary">{{ faculty.code }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-2">
+                                <span class="avatar-title rounded-circle bg-gradient-primary">
+                                    {{ faculty.name[0] }}
+                                </span>
+                            </div>
+                            <span class="fw-medium">{{ faculty.name }}</span>
+                        </div>
+                    </td>
+                    <td>{{ faculty.email or '-' }}</td>
+                    <td>{{ faculty.department or 'CSE' }}</td>
+                    <td>
+                        <span class="badge bg-info-subtle text-info">{{ faculty.max_hours }} hrs/week</span>
+                    </td>
+                    <td>
+                        {% if faculty.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set preferred = faculty.get_preferred_slots() %}
+                        {% set unavailable = faculty.get_unavailable_slots() %}
+                        <button class="btn btn-sm btn-outline-secondary" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#prefModal{{ faculty.id }}">
+                            <i class="fas fa-cog me-1"></i>
+                            {{ preferred|length }} / {{ unavailable|length }}
+                        </button>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('faculty.edit_faculty', id=faculty.id) }}" 
+                               class="btn btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="confirmDelete('{{ url_for('faculty.delete_faculty', id=faculty.id) }}')"
+                                    title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Preference Modals -->
+{% for faculty in faculty_list %}
+<div class="modal fade" id="prefModal{{ faculty.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-card">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-clock me-2 text-primary"></i>
+                    Preferences - {{ faculty.name }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('faculty.faculty_preferences', id=faculty.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-success mb-3">
+                            <i class="fas fa-star me-2"></i>Preferred Time Slots
+                        </h6>
+                        <div class="time-grid">
+                            {% set preferred = faculty.get_preferred_slots() %}
+                            {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                            <div class="day-row">
+                                <div class="day-label">{{ day }}</div>
+                                <div class="slots">
+                                    {% for period in range(1, 9) %}
+                                    <label class="slot-checkbox">
+                                        <input type="checkbox" name="preferred" 
+                                               value="{{ day }}_{{ period }}"
+                                               {% if day ~ '_' ~ period in preferred %}checked{% endif %}>
+                                        <span class="slot-label">P{{ period }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-semibold text-danger mb-3">
+                            <i class="fas fa-ban me-2"></i>Unavailable Time Slots
+                        </h6>
+                        <div class="time-grid">
+                            {% set unavailable = faculty.get_unavailable_slots() %}
+                            {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                            <div class="day-row">
+                                <div class="day-label">{{ day }}</div>
+                                <div class="slots">
+                                    {% for period in range(1, 9) %}
+                                    <label class="slot-checkbox unavailable">
+                                        <input type="checkbox" name="unavailable" 
+                                               value="{{ day }}_{{ period }}"
+                                               {% if day ~ '_' ~ period in unavailable %}checked{% endif %}>
+                                        <span class="slot-label">P{{ period }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Preferences
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-sm {
+    width: 36px;
+    height: 36px;
+}
+.avatar-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-weight: 600;
+    color: white;
+}
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+.time-grid {
+    background: var(--glass-bg);
+    border-radius: 8px;
+    padding: 1rem;
+}
+.day-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.day-row:last-child {
+    border-bottom: none;
+}
+.day-label {
+    width: 50px;
+    font-weight: 600;
+    color: var(--primary);
+}
+.slots {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.slot-checkbox {
+    cursor: pointer;
+}
+.slot-checkbox input {
+    display: none;
+}
+.slot-label {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    background: #e9ecef;
+    transition: all 0.2s;
+}
+.slot-checkbox input:checked + .slot-label {
+    background: var(--bs-success);
+    color: white;
+}
+.slot-checkbox.unavailable input:checked + .slot-label {
+    background: var(--bs-danger);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#facultyTable').DataTable({
+        pageLength: 10,
+        order: [[1, 'asc']]
+    });
+});
+
+function confirmDelete(url) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This will also delete all related mappings!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section glass-card" data-aos="fade-up">
+        <div class="welcome-content">
+            <div class="welcome-text">
+                <h2>Welcome to Timetable Generator</h2>
+                <p>NEP 2020 compliant scheduling system for B.Tech CSE curriculum. Create optimized, conflict-free timetables with our hybrid Genetic Algorithm + CSP solver.</p>
+                <div class="welcome-actions">
+                    <a href="{{ url_for('timetable.generate') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-magic"></i> Generate Timetable
+                    </a>
+                    <a href="{{ url_for('upload.index') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-cloud-upload"></i> Import Data
+                    </a>
+                </div>
+            </div>
+            <div class="welcome-illustration">
+                <i class="bi bi-calendar-week"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="stat-icon bg-primary">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statFaculty">{{ stats.faculty_count }}</h3>
+                <p>Faculty Members</p>
+            </div>
+            <a href="{{ url_for('faculty.list_faculty') }}" class="stat-link">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="150">
+            <div class="stat-icon bg-success">
+                <i class="bi bi-door-open-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statRooms">{{ stats.room_count }}</h3>
+                <p>Rooms & Labs</p>
+            </div>
+            <a href="{{ url_for('room.list_rooms') }}" class="stat-link">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-icon bg-warning">
+                <i class="bi bi-collection-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statSections">{{ stats.section_count }}</h3>
+                <p>Active Sections</p>
+            </div>
+            <a href="{{ url_for('section.list_sections') }}" class="stat-link">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="250">
+            <div class="stat-icon bg-info">
+                <i class="bi bi-book-fill"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statCourses">{{ stats.course_count }}</h3>
+                <p>Courses</p>
+            </div>
+            <a href="#" class="stat-link" data-bs-toggle="modal" data-bs-target="#coursesModal">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="stat-icon bg-purple">
+                <i class="bi bi-link-45deg"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statMappings">{{ stats.mapping_count }}</h3>
+                <p>Faculty Mappings</p>
+            </div>
+            <a href="{{ url_for('mapping.list_mappings') }}" class="stat-link">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="350">
+            <div class="stat-icon bg-danger">
+                <i class="bi bi-table"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statTimetables">{{ stats.timetable_count }}</h3>
+                <p>Generated Timetables</p>
+            </div>
+            <a href="{{ url_for('timetable.view_all') }}" class="stat-link">
+                <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Recent Activity -->
+    <div class="row mt-4">
+        <!-- Quick Actions -->
+        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
+            <div class="glass-card h-100">
+                <div class="card-header-custom">
+                    <h4><i class="bi bi-lightning-charge"></i> Quick Actions</h4>
+                </div>
+                <div class="quick-actions-grid">
+                    <a href="{{ url_for('faculty.add_faculty') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <span>Add Faculty</span>
+                    </a>
+                    <a href="{{ url_for('room.add_room') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-plus-square"></i>
+                        </div>
+                        <span>Add Room</span>
+                    </a>
+                    <a href="{{ url_for('section.add_section') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <span>Add Section</span>
+                    </a>
+                    <a href="{{ url_for('mapping.add_mapping') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-link"></i>
+                        </div>
+                        <span>Map Faculty</span>
+                    </a>
+                    <a href="{{ url_for('upload.index') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-file-earmark-excel"></i>
+                        </div>
+                        <span>Upload Excel</span>
+                    </a>
+                    <a href="{{ url_for('export.index') }}" class="quick-action-item">
+                        <div class="action-icon">
+                            <i class="bi bi-file-pdf"></i>
+                        </div>
+                        <span>Export PDF</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Generation Log -->
+        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="450">
+            <div class="glass-card h-100">
+                <div class="card-header-custom">
+                    <h4><i class="bi bi-clock-history"></i> Recent Activity</h4>
+                </div>
+                <div class="recent-activity-list">
+                    {% if recent_logs %}
+                        {% for log in recent_logs %}
+                        <div class="activity-item">
+                            <div class="activity-icon {{ 'success' if log.status == 'completed' else 'warning' if log.status == 'running' else 'danger' }}">
+                                <i class="bi bi-{% if log.status == 'completed' %}check-circle{% elif log.status == 'running' %}hourglass-split{% else %}x-circle{% endif %}"></i>
+                            </div>
+                            <div class="activity-info">
+                                <p>{{ log.section.name if log.section else 'Unknown Section' }}</p>
+                                <small>{{ log.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                            </div>
+                            <div class="activity-badge">
+                                <span class="badge bg-{{ 'success' if log.status == 'completed' else 'warning' if log.status == 'running' else 'danger' }}">
+                                    {{ log.status }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No recent activity</p>
+                            <a href="{{ url_for('timetable.generate') }}" class="btn btn-sm btn-primary">Generate First Timetable</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Semester Overview Chart -->
+    <div class="row mt-4">
+        <div class="col-12" data-aos="fade-up" data-aos-delay="500">
+            <div class="glass-card">
+                <div class="card-header-custom">
+                    <h4><i class="bi bi-bar-chart"></i> Semester-wise Course Distribution</h4>
+                </div>
+                <div class="chart-container">
+                    <canvas id="semesterChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="row mt-4">
+        <div class="col-md-6" data-aos="fade-up" data-aos-delay="550">
+            <div class="glass-card">
+                <div class="card-header-custom">
+                    <h4><i class="bi bi-info-circle"></i> System Information</h4>
+                </div>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Algorithm</span>
+                        <span class="info-value">Hybrid GA + CSP</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Population Size</span>
+                        <span class="info-value">50 chromosomes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Max Generations</span>
+                        <span class="info-value">500</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Crossover Rate</span>
+                        <span class="info-value">85%</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Mutation Rate</span>
+                        <span class="info-value">15%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6" data-aos="fade-up" data-aos-delay="600">
+            <div class="glass-card">
+                <div class="card-header-custom">
+                    <h4><i class="bi bi-clock"></i> Time Configuration</h4>
+                </div>
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Working Days</span>
+                        <span class="info-value">Monday - Friday</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">First Period</span>
+                        <span class="info-value">09:10 AM</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Period Duration</span>
+                        <span class="info-value">50 minutes</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Periods per Day</span>
+                        <span class="info-value">8 periods</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Lunch Break</span>
+                        <span class="info-value">After Period 4 (60 min)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Courses Modal -->
+<div class="modal fade" id="coursesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content glass-modal">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-book"></i> Course Catalog (NEP 2020)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-pills mb-3" id="semesterTabs">
+                    {% for i in range(1, 9) %}
+                    <li class="nav-item">
+                        <button class="nav-link {% if i == 1 %}active{% endif %}" data-bs-toggle="pill" data-bs-target="#sem{{ i }}">
+                            Sem {{ i }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content" id="semesterTabContent">
+                    {% for sem in range(1, 9) %}
+                    <div class="tab-pane fade {% if sem == 1 %}show active{% endif %}" id="sem{{ sem }}">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Course Name</th>
+                                    <th>Credits</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for course in courses if course.semester == sem %}
+                                <tr>
+                                    <td><code>{{ course.code }}</code></td>
+                                    <td>{{ course.name }}</td>
+                                    <td>{{ course.credits }}</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ course.category_color }}">
+                                            {{ course.category }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Semester Chart
+    const ctx = document.getElementById('semesterChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'],
+            datasets: [{
+                label: 'Theory Courses',
+                data: {{ semester_theory|tojson }},
+                backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                borderRadius: 8
+            }, {
+                label: 'Lab Courses',
+                data: {{ semester_labs|tojson }},
+                backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { color: 'var(--text-primary)' }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'var(--text-secondary)' }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'var(--border-color)' },
+                    ticks: { color: 'var(--text-secondary)' }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

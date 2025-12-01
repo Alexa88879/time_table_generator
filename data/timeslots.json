@@ -1,0 +1,58 @@
+{
+    "timeslots": [
+        {"day": "Monday", "day_code": 0, "period": 1, "start_time": "09:10", "end_time": "10:00", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 2, "start_time": "10:00", "end_time": "10:50", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 3, "start_time": "10:50", "end_time": "11:40", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 4, "start_time": "11:40", "end_time": "12:30", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 5, "start_time": "13:30", "end_time": "14:20", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 6, "start_time": "14:20", "end_time": "15:10", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 7, "start_time": "15:10", "end_time": "16:00", "is_break": false},
+        {"day": "Monday", "day_code": 0, "period": 8, "start_time": "16:00", "end_time": "16:50", "is_break": false},
+
+        {"day": "Tuesday", "day_code": 1, "period": 1, "start_time": "09:10", "end_time": "10:00", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 2, "start_time": "10:00", "end_time": "10:50", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 3, "start_time": "10:50", "end_time": "11:40", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 4, "start_time": "11:40", "end_time": "12:30", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 5, "start_time": "13:30", "end_time": "14:20", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 6, "start_time": "14:20", "end_time": "15:10", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 7, "start_time": "15:10", "end_time": "16:00", "is_break": false},
+        {"day": "Tuesday", "day_code": 1, "period": 8, "start_time": "16:00", "end_time": "16:50", "is_break": false},
+
+        {"day": "Wednesday", "day_code": 2, "period": 1, "start_time": "09:10", "end_time": "10:00", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 2, "start_time": "10:00", "end_time": "10:50", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 3, "start_time": "10:50", "end_time": "11:40", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 4, "start_time": "11:40", "end_time": "12:30", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 5, "start_time": "13:30", "end_time": "14:20", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 6, "start_time": "14:20", "end_time": "15:10", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 7, "start_time": "15:10", "end_time": "16:00", "is_break": false},
+        {"day": "Wednesday", "day_code": 2, "period": 8, "start_time": "16:00", "end_time": "16:50", "is_break": false},
+
+        {"day": "Thursday", "day_code": 3, "period": 1, "start_time": "09:10", "end_time": "10:00", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 2, "start_time": "10:00", "end_time": "10:50", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 3, "start_time": "10:50", "end_time": "11:40", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 4, "start_time": "11:40", "end_time": "12:30", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 5, "start_time": "13:30", "end_time": "14:20", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 6, "start_time": "14:20", "end_time": "15:10", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 7, "start_time": "15:10", "end_time": "16:00", "is_break": false},
+        {"day": "Thursday", "day_code": 3, "period": 8, "start_time": "16:00", "end_time": "16:50", "is_break": false},
+
+        {"day": "Friday", "day_code": 4, "period": 1, "start_time": "09:10", "end_time": "10:00", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 2, "start_time": "10:00", "end_time": "10:50", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 3, "start_time": "10:50", "end_time": "11:40", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 4, "start_time": "11:40", "end_time": "12:30", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 5, "start_time": "13:30", "end_time": "14:20", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 6, "start_time": "14:20", "end_time": "15:10", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 7, "start_time": "15:10", "end_time": "16:00", "is_break": false},
+        {"day": "Friday", "day_code": 4, "period": 8, "start_time": "16:00", "end_time": "16:50", "is_break": false}
+    ],
+    "settings": {
+        "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "periods_per_day": 8,
+        "period_duration_minutes": 50,
+        "first_period_start": "09:10",
+        "lunch_after_period": 4,
+        "lunch_duration_minutes": 60,
+        "lab_consecutive_periods": 2,
+        "valid_lab_start_periods": [1, 3, 5, 7]
+    }
+}

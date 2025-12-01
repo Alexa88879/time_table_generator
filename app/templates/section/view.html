@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}{{ section.name }} - Section{% endblock %}
+{% block page_title %}Section Details{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('section.list_sections') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('section.manage_batches', section_id=section.id) }}" class="btn btn-info">
+                    <i class="fas fa-users me-2"></i>Manage Batches
+                </a>
+                <a href="{{ url_for('section.edit_section', id=section.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Section Info -->
+    <div class="col-lg-4" data-aos="fade-right">
+        <div class="glass-card h-100">
+            <div class="card-body text-center">
+                <div class="avatar-xl mx-auto mb-3">
+                    <span class="avatar-text bg-primary-subtle text-primary">
+                        S{{ section.semester }}
+                    </span>
+                </div>
+                <h4 class="mb-1">{{ section.name }}</h4>
+                <p class="text-muted mb-3">Semester {{ section.semester }}</p>
+                
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-info-subtle text-info">{{ section.department }}</span>
+                    <span class="badge bg-{{ 'success' if section.is_active else 'danger' }}-subtle text-{{ 'success' if section.is_active else 'danger' }}">
+                        {{ 'Active' if section.is_active else 'Inactive' }}
+                    </span>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="mb-0 text-primary">{{ section.total_students }}</h5>
+                        <small class="text-muted">Students</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="mb-0 text-success">{{ section.batches|length }}</h5>
+                        <small class="text-muted">Batches</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6 class="text-muted mb-3">Lab Batches</h6>
+                {% if section.batches %}
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    {% for batch in section.batches %}
+                    <span class="badge bg-secondary">{{ batch.name }} ({{ batch.student_count }})</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0"><small>No batches created</small></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Course Mappings -->
+    <div class="col-lg-8" data-aos="fade-left">
+        <div class="glass-card h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-book me-2 text-primary"></i>Course Assignments</h5>
+                <a href="{{ url_for('mapping.add_mapping') }}?section_id={{ section.id }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i>Add Mapping
+                </a>
+            </div>
+            <div class="card-body">
+                {% if mappings %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Faculty</th>
+                                <th>Type</th>
+                                <th>Batch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in mappings %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if m.course.is_lab else 'secondary' }} me-1">{{ m.course.code }}</span>
+                                    {{ m.course.name }}
+                                </td>
+                                <td>{{ m.faculty.name }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if m.session_type == 'lab' else 'primary' }}">
+                                        {{ m.session_type.title() }}
+                                    </span>
+                                </td>
+                                <td>{{ m.batch.name if m.batch else 'All' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p class="mb-0">No course assignments yet</p>
+                    <a href="{{ url_for('mapping.add_mapping') }}?section_id={{ section.id }}" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-2"></i>Add First Mapping
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Semester Courses -->
+        <div class="glass-card mt-4">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-list me-2 text-info"></i>Semester {{ section.semester }} Courses</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Credits</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in courses %}
+                            <tr>
+                                <td><code>{{ course.code }}</code></td>
+                                <td>{{ course.name }}</td>
+                                <td>{{ course.credits }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'info' if course.is_lab else 'secondary' }}">
+                                        {{ 'Lab' if course.is_lab else 'Theory' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Quick Add Mappings{% endblock %}
+{% block page_title %}Quick Add Mappings{% endblock %}
+
+{% block content %}
+<div class="row mb-4" data-aos="fade-down">
+    <div class="col-12">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Mappings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10 mx-auto" data-aos="fade-up">
+        <div class="glass-card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Quick Add Multiple Mappings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label for="sectionSelect" class="form-label">Select Section</label>
+                            <select class="form-select" id="sectionSelect" name="section_id" required>
+                                <option value="">Choose Section...</option>
+                                {% for section in sections %}
+                                <option value="{{ section.id }}" data-semester="{{ section.semester }}">
+                                    Semester {{ section.semester }} - {{ section.name }} ({{ section.department }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="coursesContainer" style="display: none;">
+                        <h6 class="mb-3">Select Courses and Assign Faculty</h6>
+                        <div class="table-responsive">
+                            <table class="table" id="coursesTable">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
+                                        <th>Course</th>
+                                        <th>Type</th>
+                                        <th>Faculty</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="coursesBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary flex-fill">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary flex-fill">
+                                <i class="fas fa-save me-2"></i>Save Mappings
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const facultyList = {{ faculty|tojson|safe }};
+
+document.getElementById('sectionSelect').addEventListener('change', function() {
+    const semester = this.options[this.selectedIndex].dataset.semester;
+    if (!semester) {
+        document.getElementById('coursesContainer').style.display = 'none';
+        return;
+    }
+    
+    // Fetch courses for semester
+    fetch(`/api/courses/semester/${semester}`)
+    .then(response => response.json())
+    .then(courses => {
+        const tbody = document.getElementById('coursesBody');
+        tbody.innerHTML = '';
+        
+        courses.forEach(course => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div class="form-check">
+                        <input class="form-check-input course-check" type="checkbox" 
+                               name="course_ids" value="${course.id}">
+                    </div>
+                </td>
+                <td>
+                    <span class="badge bg-${course.is_lab ? 'info' : 'secondary'} me-1">${course.code}</span>
+                    ${course.name}
+                </td>
+                <td>
+                    <span class="badge bg-${course.is_lab ? 'info' : 'primary'}">
+                        ${course.is_lab ? 'Lab' : 'Theory'}
+                    </span>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm" name="faculty_${course.id}">
+                        <option value="">Select Faculty</option>
+                        ${facultyList.map(f => `<option value="${f.id}">${f.name} (${f.code})</option>`).join('')}
+                    </select>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('coursesContainer').style.display = 'block';
+    });
+});
+
+document.getElementById('selectAll').addEventListener('change', function() {
+    document.querySelectorAll('.course-check').forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}
