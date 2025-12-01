@@ -5,7 +5,6 @@
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0.x-green.svg)](https://flask.palletsprojects.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.2-purple.svg)](https://getbootstrap.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 An intelligent, constraint-based timetable generation system specifically designed for **Dr. A.P.J. Abdul Kalam Technical University (AKTU)** Computer Science & Engineering curriculum following the **National Education Policy (NEP) 2020** guidelines.
 
@@ -44,12 +43,13 @@ The algorithm works in two phases:
 ### GA Parameters
 
 ```python
-POPULATION_SIZE = 50
-MAX_GENERATIONS = 500
-CROSSOVER_RATE = 0.85
-MUTATION_RATE = 0.15
-ELITE_PERCENTAGE = 0.10
-TOURNAMENT_SIZE = 3
+GA_POPULATION_SIZE = 50
+GA_MAX_GENERATIONS = 500
+GA_CROSSOVER_RATE = 0.85
+GA_MUTATION_RATE = 0.15
+GA_ELITISM_COUNT = 5
+GA_TOURNAMENT_SIZE = 5
+GA_TIME_LIMIT_SECONDS = 60
 ```
 
 ---
@@ -158,7 +158,7 @@ time_table_generator/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Alexa88879/time_table_generator.git
+git clone <repository-url>
 cd time_table_generator
 
 # 2. Create virtual environment
@@ -336,7 +336,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - free for educational use.
+This project is free for educational use.
 
 ---
 
