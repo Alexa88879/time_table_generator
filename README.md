@@ -3,7 +3,7 @@
 **AKTU CSE Curriculum - Hybrid GA+CSP Scheduler**
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0.x-green.svg)](https://flask.palletsprojects.com/)
+[![Flask](https://img.shields.io/badge/Flask-3.0.0-green.svg)](https://flask.palletsprojects.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.2-purple.svg)](https://getbootstrap.com/)
 
 An intelligent, constraint-based timetable generation system specifically designed for **Dr. A.P.J. Abdul Kalam Technical University (AKTU)** Computer Science & Engineering curriculum following the **National Education Policy (NEP) 2020** guidelines.
