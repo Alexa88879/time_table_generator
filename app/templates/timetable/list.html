@@ -38,7 +38,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for section, count in sections %}
+                            {% for section in sections %}
                             <tr>
                                 <td>
                                     <strong>{{ section.name }}</strong>
@@ -48,7 +48,7 @@
                                     <span class="badge bg-primary">Semester {{ section.semester }}</span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-success">{{ count }} classes</span>
+                                    <span class="badge bg-success">{{ section.timetable_entries|length }} classes</span>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">

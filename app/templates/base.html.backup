@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/dropzone@5.9.3/dist/min/dropzone.min.css" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link href="{{ url_for('static', filename='css/main.css') }}?v=3" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/modern-minimal.css') }}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -29,7 +29,7 @@
                 <i class="bi bi-calendar-check logo-icon"></i>
                 <span class="logo-text">TimetableAI</span>
             </div>
-            <button class="btn-toggle-sidebar d-lg-none" id="sidebar-close">
+            <button class="btn-toggle-sidebar d-lg-none" id="toggleSidebar">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
@@ -118,7 +118,7 @@
         
         <div class="sidebar-footer">
             <div class="theme-toggle">
-                <button class="btn btn-sm btn-glass" id="theme-toggle">
+                <button class="btn btn-sm btn-glass" id="themeToggle">
                     <i class="bi bi-moon-stars-fill"></i>
                     <span>Dark Mode</span>
                 </button>
@@ -134,7 +134,7 @@
         <!-- Top Navbar -->
         <nav class="top-navbar">
             <div class="navbar-left">
-                <button class="btn-toggle-sidebar d-lg-none" id="sidebar-open">
+                <button class="btn-toggle-sidebar d-lg-none" id="openSidebar">
                     <i class="bi bi-list"></i>
                 </button>
                 <div class="page-title">

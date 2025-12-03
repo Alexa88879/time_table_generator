@@ -6,7 +6,7 @@
 {% block content %}
 <div class="dashboard-container">
     <!-- Welcome Section -->
-    <div class="welcome-section glass-card" data-aos="fade-up">
+    <div class="welcome-section">
         <div class="welcome-content">
             <div class="welcome-text">
                 <h2>Welcome to TimetableAI</h2>
@@ -28,8 +28,8 @@
 
     <!-- Stats Cards -->
     <div class="stats-grid">
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="stat-icon bg-primary">
+        <div class="stat-card" data-color="primary">
+            <div class="stat-icon">
                 <i class="bi bi-people-fill"></i>
             </div>
             <div class="stat-info">
@@ -41,8 +41,8 @@
             </a>
         </div>
 
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="150">
-            <div class="stat-icon bg-success">
+        <div class="stat-card" data-color="success">
+            <div class="stat-icon">
                 <i class="bi bi-door-open-fill"></i>
             </div>
             <div class="stat-info">
@@ -54,8 +54,8 @@
             </a>
         </div>
 
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="stat-icon bg-warning">
+        <div class="stat-card" data-color="warning">
+            <div class="stat-icon">
                 <i class="bi bi-collection-fill"></i>
             </div>
             <div class="stat-info">
@@ -67,8 +67,8 @@
             </a>
         </div>
 
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="250">
-            <div class="stat-icon bg-info">
+        <div class="stat-card" data-color="info">
+            <div class="stat-icon">
                 <i class="bi bi-book-fill"></i>
             </div>
             <div class="stat-info">
@@ -80,8 +80,8 @@
             </a>
         </div>
 
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="300">
-            <div class="stat-icon bg-purple">
+        <div class="stat-card" data-color="purple">
+            <div class="stat-icon">
                 <i class="bi bi-link-45deg"></i>
             </div>
             <div class="stat-info">
@@ -93,8 +93,8 @@
             </a>
         </div>
 
-        <div class="stat-card glass-card" data-aos="fade-up" data-aos-delay="350">
-            <div class="stat-icon bg-danger">
+        <div class="stat-card" data-color="danger">
+            <div class="stat-icon">
                 <i class="bi bi-table"></i>
             </div>
             <div class="stat-info">
@@ -110,8 +110,8 @@
     <!-- Quick Actions & Recent Activity -->
     <div class="row mt-4">
         <!-- Quick Actions -->
-        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="glass-card h-100">
+        <div class="col-lg-6">
+            <div class="card h-100">
                 <div class="card-header-custom">
                     <h4><i class="bi bi-lightning-charge"></i> Quick Actions</h4>
                 </div>
@@ -157,8 +157,8 @@
         </div>
 
         <!-- Recent Generation Log -->
-        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="450">
-            <div class="glass-card h-100">
+        <div class="col-lg-6">
+            <div class="card h-100">
                 <div class="card-header-custom">
                     <h4><i class="bi bi-clock-history"></i> Recent Activity</h4>
                 </div>
@@ -192,24 +192,10 @@
         </div>
     </div>
 
-    <!-- Semester Overview Chart -->
-    <div class="row mt-4">
-        <div class="col-12" data-aos="fade-up" data-aos-delay="500">
-            <div class="glass-card">
-                <div class="card-header-custom">
-                    <h4><i class="bi bi-bar-chart"></i> Semester-wise Course Distribution</h4>
-                </div>
-                <div class="chart-container">
-                    <canvas id="semesterChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- System Information -->
     <div class="row mt-4">
-        <div class="col-md-6" data-aos="fade-up" data-aos-delay="550">
-            <div class="glass-card">
+        <div class="col-md-6">
+            <div class="card">
                 <div class="card-header-custom">
                     <h4><i class="bi bi-info-circle"></i> System Information</h4>
                 </div>
@@ -238,8 +224,8 @@
             </div>
         </div>
 
-        <div class="col-md-6" data-aos="fade-up" data-aos-delay="600">
-            <div class="glass-card">
+        <div class="col-md-6">
+            <div class="card">
                 <div class="card-header-custom">
                     <h4><i class="bi bi-clock"></i> Time Configuration</h4>
                 </div>
@@ -273,7 +259,7 @@
 <!-- Courses Modal -->
 <div class="modal fade" id="coursesModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content glass-modal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-book"></i> Course Catalog (NEP 2020)</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -326,47 +312,6 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Semester Chart
-    const ctx = document.getElementById('semesterChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'],
-            datasets: [{
-                label: 'Theory Courses',
-                data: {{ semester_theory|tojson }},
-                backgroundColor: 'rgba(99, 102, 241, 0.7)',
-                borderRadius: 8
-            }, {
-                label: 'Lab Courses',
-                data: {{ semester_labs|tojson }},
-                backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { color: 'var(--text-primary)' }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { color: 'var(--text-secondary)' }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: 'var(--border-color)' },
-                    ticks: { color: 'var(--text-secondary)' }
-                }
-            }
-        }
-    });
-});
+// Dashboard animations and interactions
 </script>
 {% endblock %}

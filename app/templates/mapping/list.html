@@ -10,7 +10,7 @@
                 <p class="text-muted mb-0">Assign faculty to courses and sections</p>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkModal">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkModal">
                     <i class="fas fa-layer-group me-2"></i>Bulk Assign
                 </button>
                 <a href="{{ url_for('mapping.add_mapping') }}" class="btn btn-primary">
@@ -56,7 +56,7 @@
             </select>
         </div>
         <div class="col-md-3">
-            <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-outline-secondary w-100">
+            <a href="{{ url_for('mapping.list_mappings') }}" class="btn btn-secondary w-100">
                 <i class="fas fa-refresh me-2"></i>Reset Filters
             </a>
         </div>

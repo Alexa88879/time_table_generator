@@ -105,7 +105,7 @@
                     <td>
                         {% set preferred = faculty.get_preferred_slots() %}
                         {% set unavailable = faculty.get_unavailable_slots() %}
-                        <button class="btn btn-sm btn-outline-secondary" 
+                        <button class="btn btn-sm btn-secondary" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#prefModal{{ faculty.id }}">
                             <i class="fas fa-cog me-1"></i>
@@ -115,10 +115,10 @@
                     <td>
                         <div class="btn-group btn-group-sm">
                             <a href="{{ url_for('faculty.edit_faculty', id=faculty.id) }}" 
-                               class="btn btn-outline-primary" title="Edit">
+                               class="btn btn-primary" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button type="button" class="btn btn-outline-danger" 
+                            <button type="button" class="btn btn-danger" 
                                     onclick="confirmDelete('{{ url_for('faculty.delete_faculty', id=faculty.id) }}')"
                                     title="Delete">
                                 <i class="fas fa-trash"></i>

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Export{% endblock %}
+{% block page_title %}Export Data{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <p class="text-muted mb-0">Export timetables and data in various formats</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Export Timetables -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header-custom">
+                <h4><i class="bi bi-file-earmark-excel"></i> Export Timetables</h4>
+            </div>
+            <div class="card-body">
+                <form id="exportTimetableForm" method="post" action="{{ url_for('export.export_timetable') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Select Section</label>
+                        <select class="form-select" name="section_id" required>
+                            <option value="">Choose a section...</option>
+                            {% for section in sections %}
+                            <option value="{{ section.id }}">{{ section.name }} (Semester {{ section.semester }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <select class="form-select" name="format" required>
+                            <option value="excel">Excel (.xlsx)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                            <option value="csv">CSV (.csv)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="include_faculty" id="includeFaculty" checked>
+                            <label class="form-check-label" for="includeFaculty">
+                                Include Faculty Details
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="include_rooms" id="includeRooms" checked>
+                            <label class="form-check-label" for="includeRooms">
+                                Include Room Information
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-download"></i> Export Timetable
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Master Data -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header-custom">
+                <h4><i class="bi bi-database"></i> Export Master Data</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">Export master data for backup or migration</p>
+                
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('export.export_faculty') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-people"></i> Export Faculty List
+                    </a>
+                    
+                    <a href="{{ url_for('export.export_rooms') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-door-open"></i> Export Rooms & Labs
+                    </a>
+                    
+                    <a href="{{ url_for('export.export_sections') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-collection"></i> Export Sections
+                    </a>
+                    
+                    <a href="{{ url_for('export.export_mappings') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-link-45deg"></i> Export Faculty Mappings
+                    </a>
+                    
+                    <a href="{{ url_for('export.export_all') }}" class="btn btn-success">
+                        <i class="bi bi-box-arrow-down"></i> Export All Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Info -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header-custom">
+                <h4><i class="bi bi-info-circle"></i> Export Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">Supported Formats</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-file-earmark-excel text-success"></i> <strong>Excel (.xlsx)</strong> - Full formatting and multiple sheets</li>
+                            <li class="mb-2"><i class="bi bi-file-earmark-pdf text-danger"></i> <strong>PDF (.pdf)</strong> - Print-ready formatted documents</li>
+                            <li class="mb-2"><i class="bi bi-file-earmark-text text-primary"></i> <strong>CSV (.csv)</strong> - Plain text, compatible with all spreadsheet software</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3">What's Included</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Complete timetable with day and time</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Course names and codes</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Faculty assignments</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Room allocations</li>
+                            <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Batch information (for labs)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('exportTimetableForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const format = formData.get('format');
+    const sectionId = formData.get('section_id');
+    
+    if (!sectionId) {
+        showError('Error', 'Please select a section');
+        return;
+    }
+    
+    // Build URL with parameters
+    const params = new URLSearchParams(formData);
+    const url = this.action + '?' + params.toString();
+    
+    // Show loading
+    showLoading('Generating export file...');
+    
+    // Download file
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Export failed');
+            return response.blob();
+        })
+        .then(blob => {
+            hideLoading();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `timetable_section_${sectionId}.${format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            showSuccess('Success', 'File downloaded successfully!');
+        })
+        .catch(error => {
+            hideLoading();
+            showError('Error', 'Failed to export file. Please try again.');
+        });
+});
+</script>
+{% endblock %}

@@ -117,10 +117,10 @@
                     </div>
                     <div class="card-footer bg-transparent border-0">
                         <div class="d-flex gap-2">
-                            <a href="{{ url_for('room.edit_room', id=room.id) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                            <a href="{{ url_for('room.edit_room', id=room.id) }}" class="btn btn-sm btn-primary flex-fill">
                                 <i class="fas fa-edit me-1"></i>Edit
                             </a>
-                            <button class="btn btn-sm btn-outline-danger" 
+                            <button class="btn btn-sm btn-danger" 
                                     onclick="confirmDelete('{{ url_for('room.delete_room', id=room.id) }}')">
                                 <i class="fas fa-trash"></i>
                             </button>

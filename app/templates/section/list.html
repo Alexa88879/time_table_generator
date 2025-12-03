@@ -26,7 +26,7 @@
                 <span class="fw-medium me-2">Filter by Semester:</span>
                 <button class="btn btn-sm btn-primary active" onclick="filterSemester('all')">All</button>
                 {% for sem in range(1, 9) %}
-                <button class="btn btn-sm btn-outline-primary sem-filter" onclick="filterSemester({{ sem }})">
+                <button class="btn btn-sm btn-primary sem-filter" onclick="filterSemester({{ sem }})">
                     Sem {{ sem }}
                 </button>
                 {% endfor %}

@@ -1,429 +1,349 @@
-// Main JavaScript - Core Functionality
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize AOS (Animate on Scroll)
-    AOS.init({
-        duration: 600,
-        easing: 'ease-out-cubic',
-        once: true,
-        offset: 50
+document.addEventListener('DOMContentLoaded', function(){
+  // Theme toggle
+  const themeToggle = document.getElementById('theme-toggle');
+  if(themeToggle){
+    themeToggle.addEventListener('click', function(){
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const newTheme = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('site-theme', newTheme);
+      
+      // Update button text
+      themeToggle.innerHTML = newTheme === 'dark' 
+        ? '<i class="bi bi-sun-fill"></i> Light Mode' 
+        : '<i class="bi bi-moon-stars-fill"></i> Dark Mode';
     });
 
-    // Initialize Components
-    initSidebar();
-    initThemeToggle();
-    initLoadingOverlay();
-    initQuickStats();
-    initDataTables();
-    initFormValidation();
-    initTooltips();
-});
-
-// Sidebar Toggle
-function initSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const openBtn = document.getElementById('openSidebar');
-    const closeBtn = document.getElementById('toggleSidebar');
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    document.body.appendChild(overlay);
-
-    if (openBtn) {
-        openBtn.addEventListener('click', () => {
-            sidebar.classList.add('show');
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
+    // Restore saved theme
+    const saved = localStorage.getItem('site-theme');
+    if(saved){
+      document.documentElement.setAttribute('data-theme', saved);
+      themeToggle.innerHTML = saved === 'dark' 
+        ? '<i class="bi bi-sun-fill"></i> Light Mode' 
+        : '<i class="bi bi-moon-stars-fill"></i> Dark Mode';
+    } else {
+      // Check system preference
+      if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+        document.documentElement.setAttribute('data-theme', 'dark');
+        themeToggle.innerHTML = '<i class="bi bi-sun-fill"></i> Light Mode';
+      }
     }
+  }
 
-    if (closeBtn) {
-        closeBtn.addEventListener('click', () => {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
-        });
+  // Sidebar toggle for mobile
+  const sidebarOpen = document.getElementById('sidebar-open');
+  const sidebarClose = document.getElementById('sidebar-close');
+  const sidebar = document.getElementById('sidebar');
+  
+  if(sidebar){
+    function toggleSidebar(){
+      sidebar.classList.toggle('open');
     }
-
-    overlay.addEventListener('click', () => {
-        sidebar.classList.remove('show');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    });
-
-    // Add CSS for overlay
-    const style = document.createElement('style');
-    style.textContent = `
-        .sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-        .sidebar-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-    `;
-    document.head.appendChild(style);
-}
-
-// Theme Toggle
-function initThemeToggle() {
-    const themeToggle = document.getElementById('themeToggle');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme');
-
-    // Set initial theme
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        updateThemeButton(savedTheme === 'dark');
-    } else if (prefersDark) {
-        document.documentElement.setAttribute('data-bs-theme', 'dark');
-        updateThemeButton(true);
-    }
-
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            document.documentElement.setAttribute('data-bs-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeButton(newTheme === 'dark');
-        });
-    }
-
-    function updateThemeButton(isDark) {
-        if (themeToggle) {
-            themeToggle.innerHTML = isDark 
-                ? '<i class="bi bi-sun-fill"></i><span>Light Mode</span>'
-                : '<i class="bi bi-moon-stars-fill"></i><span>Dark Mode</span>';
-        }
-    }
-}
-
-// Loading Overlay
-function initLoadingOverlay() {
-    window.showLoading = function(text = 'Processing...') {
-        const overlay = document.getElementById('loadingOverlay');
-        const loaderText = overlay.querySelector('.loader-text');
-        if (loaderText) loaderText.textContent = text;
-        overlay.classList.add('active');
-    };
-
-    window.hideLoading = function() {
-        const overlay = document.getElementById('loadingOverlay');
-        overlay.classList.remove('active');
-    };
-}
-
-// Quick Stats (Header)
-function initQuickStats() {
-    // Update quick stats from dashboard data if available
-    const sectionsEl = document.getElementById('statSections');
-    const facultyEl = document.getElementById('statFaculty');
     
-    if (sectionsEl && document.getElementById('quickStatSections')) {
-        document.getElementById('quickStatSections').textContent = sectionsEl.textContent;
-    }
-    if (facultyEl && document.getElementById('quickStatFaculty')) {
-        document.getElementById('quickStatFaculty').textContent = facultyEl.textContent;
-    }
-}
+    if(sidebarOpen) sidebarOpen.addEventListener('click', toggleSidebar);
+    if(sidebarClose) sidebarClose.addEventListener('click', toggleSidebar);
 
-// DataTables Initialization
-function initDataTables() {
-    const tables = document.querySelectorAll('.data-table');
-    tables.forEach(table => {
-        if (!$.fn.DataTable.isDataTable(table)) {
-            $(table).DataTable({
-                pageLength: 10,
-                responsive: true,
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-                language: {
-                    search: '',
-                    searchPlaceholder: 'Search...',
-                    lengthMenu: 'Show _MENU_ entries',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                    paginate: {
-                        first: '<i class="bi bi-chevron-double-left"></i>',
-                        previous: '<i class="bi bi-chevron-left"></i>',
-                        next: '<i class="bi bi-chevron-right"></i>',
-                        last: '<i class="bi bi-chevron-double-right"></i>'
-                    }
-                },
-                drawCallback: function() {
-                    // Reinitialize tooltips after table redraw
-                    initTooltips();
-                }
-            });
+    // Close sidebar when clicking outside
+    document.addEventListener('click', function(e){
+      if(sidebar.classList.contains('open') && 
+         !sidebar.contains(e.target) && 
+         (!sidebarOpen || !sidebarOpen.contains(e.target)) &&
+         (!sidebarClose || !sidebarClose.contains(e.target))){
+        sidebar.classList.remove('open');
+      }
+    });
+  }
+
+  // Active nav link highlighting
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+    if(link.getAttribute('href') === currentPath){
+      link.classList.add('active');
+    }
+  });
+
+  // Timetable class click handler
+  document.querySelectorAll('.tclass').forEach(function(el){
+    el.addEventListener('click', function(e){
+      const title = this.querySelector('.tclass-title')?.innerText || 'Class';
+      const meta = this.querySelector('.tclass-meta')?.innerText || '';
+      
+      const modalBody = document.getElementById('modalBody');
+      if(modalBody){
+        modalBody.innerHTML = `<p><strong>${title}</strong></p><p class="text-muted">${meta}</p>`;
+        const modal = document.getElementById('classModal');
+        if(modal && typeof bootstrap !== 'undefined'){
+          new bootstrap.Modal(modal).show();
         }
+      }
     });
-}
+  });
 
-// Form Validation
-function initFormValidation() {
-    const forms = document.querySelectorAll('.needs-validation');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        });
-    });
-}
-
-// Tooltips
-function initTooltips() {
+  // Initialize tooltips if Bootstrap is loaded
+  if(typeof bootstrap !== 'undefined' && bootstrap.Tooltip){
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipTriggerList.forEach(el => {
-        new bootstrap.Tooltip(el);
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+      new bootstrap.Tooltip(tooltipTriggerEl);
     });
-}
+  }
 
-// SweetAlert2 Helpers
-window.showSuccess = function(title, text) {
-    return Swal.fire({
+  // Initialize popovers if Bootstrap is loaded
+  if(typeof bootstrap !== 'undefined' && bootstrap.Popover){
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+    popoverTriggerList.forEach(popoverTriggerEl => {
+      new bootstrap.Popover(popoverTriggerEl);
+    });
+  }
+
+  // Loading overlay functionality
+  window.showLoading = function(message = 'Loading...'){
+    let overlay = document.getElementById('loadingOverlay');
+    if(!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'loadingOverlay';
+      overlay.innerHTML = `
+        <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+          <div style="background:white;padding:2rem;border-radius:12px;text-align:center;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 mb-0">${message}</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block';
+  };
+
+  window.hideLoading = function(){
+    const overlay = document.getElementById('loadingOverlay');
+    if(overlay){
+      overlay.style.display = 'none';
+    }
+  };
+
+  // SweetAlert2 helpers (if available)
+  if(typeof Swal !== 'undefined'){
+    window.showSuccess = function(title, text){
+      return Swal.fire({
         icon: 'success',
         title: title,
         text: text,
-        confirmButtonColor: 'var(--primary)',
-        background: 'var(--bg-card)',
-        color: 'var(--text-primary)'
-    });
-};
+        confirmButtonColor: '#6366f1'
+      });
+    };
 
-window.showError = function(title, text) {
-    return Swal.fire({
+    window.showError = function(title, text){
+      return Swal.fire({
         icon: 'error',
         title: title,
         text: text,
-        confirmButtonColor: 'var(--danger)',
-        background: 'var(--bg-card)',
-        color: 'var(--text-primary)'
-    });
-};
+        confirmButtonColor: '#ef4444'
+      });
+    };
 
-window.showConfirm = function(title, text, confirmText = 'Yes, proceed') {
-    return Swal.fire({
+    window.confirmDelete = function(url, itemName = 'this item'){
+      return Swal.fire({
+        title: 'Are you sure?',
+        text: `You are about to delete ${itemName}. This action cannot be undone.`,
         icon: 'warning',
-        title: title,
-        text: text,
         showCancelButton: true,
-        confirmButtonColor: 'var(--primary)',
-        cancelButtonColor: 'var(--danger)',
-        confirmButtonText: confirmText,
-        cancelButtonText: 'Cancel',
-        background: 'var(--bg-card)',
-        color: 'var(--text-primary)'
-    });
-};
-
-window.showToast = function(icon, title) {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true,
-        background: 'var(--bg-card)',
-        color: 'var(--text-primary)',
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if(result.isConfirmed){
+          showLoading('Deleting...');
+          
+          fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            hideLoading();
+            if(data.success){
+              showSuccess('Deleted!', data.message || 'Item has been deleted.').then(() => {
+                location.reload();
+              });
+            } else {
+              showError('Error', data.message || 'Failed to delete item.');
+            }
+          })
+          .catch(error => {
+            hideLoading();
+            showError('Error', 'An error occurred while deleting.');
+          });
         }
-    });
-    return Toast.fire({ icon, title });
-};
+      });
+    };
+  }
 
-// Delete Confirmation
-window.confirmDelete = function(url, itemName = 'this item') {
-    showConfirm(
-        'Are you sure?',
-        `You are about to delete ${itemName}. This action cannot be undone.`,
-        'Yes, delete it'
-    ).then((result) => {
-        if (result.isConfirmed) {
-            showLoading('Deleting...');
-            
-            fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                if (data.success) {
-                    showSuccess('Deleted!', data.message || 'Item has been deleted.')
-                        .then(() => location.reload());
-                } else {
-                    showError('Error', data.message || 'Failed to delete item.');
-                }
-            })
-            .catch(error => {
-                hideLoading();
-                showError('Error', 'An error occurred while deleting.');
-            });
-        }
+  // DataTables initialization (if available)
+  if(typeof jQuery !== 'undefined' && jQuery.fn.DataTable){
+    jQuery('.data-table').DataTable({
+      pageLength: 10,
+      responsive: true,
+      language: {
+        search: '',
+        searchPlaceholder: 'Search...'
+      }
     });
+  }
+
+  // Responsive timetable grid
+  const grid = document.getElementById('timetableGrid');
+  if(grid && window.innerWidth < 768){
+    grid.style.overflowX = 'auto';
+  }
+
+  // Animate counters on dashboard
+  const counters = document.querySelectorAll('.stat-card h3, .stat-info h3');
+  counters.forEach(counter => {
+    const target = parseInt(counter.textContent) || 0;
+    if (target > 0) {
+      counter.textContent = '0';
+      setTimeout(() => animateCounter(counter, target), 300);
+    }
+  });
+
+  // Intersection Observer for fade-in animations
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('fade-in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.card, .stat-card').forEach(el => {
+    observer.observe(el);
+  });
+});
+
+// Helper Functions
+
+// Animate Counter
+function animateCounter(element, target, duration = 1000) {
+  const start = parseInt(element.textContent) || 0;
+  const increment = (target - start) / (duration / 16);
+  let current = start;
+
+  const timer = setInterval(() => {
+    current += increment;
+    if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+      element.textContent = target;
+      clearInterval(timer);
+    } else {
+      element.textContent = Math.floor(current);
+    }
+  }, 16);
+}
+
+// Copy to Clipboard
+window.copyToClipboard = function(text) {
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(() => {
+      if(typeof Swal !== 'undefined'){
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Copied to clipboard!',
+          showConfirmButton: false,
+          timer: 2000
+        });
+      } else {
+        alert('Copied to clipboard!');
+      }
+    }).catch(() => {
+      alert('Failed to copy.');
+    });
+  }
 };
 
 // Form Submit with AJAX
 window.submitFormAjax = function(form, successCallback) {
-    const formData = new FormData(form);
-    const url = form.action;
-    const method = form.method || 'POST';
+  const formData = new FormData(form);
+  const url = form.action;
+  const method = form.method || 'POST';
 
-    showLoading('Saving...');
+  showLoading('Saving...');
 
-    fetch(url, {
-        method: method,
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showSuccess('Success!', data.message || 'Operation completed successfully.')
-                .then(() => {
-                    if (successCallback) successCallback(data);
-                    else if (data.redirect) window.location.href = data.redirect;
-                });
-        } else {
-            showError('Error', data.message || 'An error occurred.');
-        }
+  fetch(url, {
+    method: method,
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      if(typeof showSuccess === 'function'){
+        showSuccess('Success!', data.message || 'Operation completed successfully.')
+          .then(() => {
+            if (successCallback) successCallback(data);
+            else if (data.redirect) window.location.href = data.redirect;
+          });
+      } else {
+        if (successCallback) successCallback(data);
+        else if (data.redirect) window.location.href = data.redirect;
+      }
+    } else {
+      if(typeof showError === 'function'){
+        showError('Error', data.message || 'An error occurred.');
+      } else {
+        alert(data.message || 'An error occurred.');
+      }
+    }
+  })
+  .catch(error => {
+    hideLoading();
+    if(typeof showError === 'function'){
+      showError('Error', 'An error occurred. Please try again.');
+    } else {
+      alert('An error occurred. Please try again.');
+    }
+  });
+};
+
+// Download file helper
+window.downloadFile = function(url, filename) {
+  showLoading('Generating file...');
+  
+  fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+      hideLoading();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename || 'download.xlsx';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      if(typeof Swal !== 'undefined'){
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'File downloaded successfully!',
+          showConfirmButton: false,
+          timer: 2000
+        });
+      }
     })
     .catch(error => {
-        hideLoading();
-        showError('Error', 'An error occurred. Please try again.');
-    });
-};
-
-// Debounce Function
-window.debounce = function(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-};
-
-// Format Date
-window.formatDate = function(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
-};
-
-// Copy to Clipboard
-window.copyToClipboard = function(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showToast('success', 'Copied to clipboard!');
-    }).catch(() => {
-        showToast('error', 'Failed to copy.');
-    });
-};
-
-// Excel Download Helper
-window.downloadExcel = function(url, filename) {
-    showLoading('Generating Excel file...');
-    
-    fetch(url)
-        .then(response => response.blob())
-        .then(blob => {
-            hideLoading();
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename || 'download.xlsx';
-            link.click();
-            URL.revokeObjectURL(link.href);
-            showToast('success', 'File downloaded successfully!');
-        })
-        .catch(error => {
-            hideLoading();
-            showError('Error', 'Failed to download file.');
-        });
-};
-
-// PDF Download Helper
-window.downloadPDF = function(url, filename) {
-    showLoading('Generating PDF file...');
-    
-    fetch(url)
-        .then(response => response.blob())
-        .then(blob => {
-            hideLoading();
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename || 'download.pdf';
-            link.click();
-            URL.revokeObjectURL(link.href);
-            showToast('success', 'File downloaded successfully!');
-        })
-        .catch(error => {
-            hideLoading();
-            showError('Error', 'Failed to download file.');
-        });
-};
-
-// Animate Counter
-window.animateCounter = function(element, target, duration = 1000) {
-    const start = parseInt(element.textContent) || 0;
-    const increment = (target - start) / (duration / 16);
-    let current = start;
-
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
-            element.textContent = target;
-            clearInterval(timer);
-        } else {
-            element.textContent = Math.floor(current);
-        }
-    }, 16);
-};
-
-// Smooth Scroll to Element
-window.scrollToElement = function(selector, offset = 100) {
-    const element = document.querySelector(selector);
-    if (element) {
-        const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
-        window.scrollTo({ top, behavior: 'smooth' });
-    }
-};
-
-// Local Storage Helpers
-window.storage = {
-    set: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
-    get: (key) => {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : null;
-    },
-    remove: (key) => localStorage.removeItem(key)
-};
-
-// Event Delegation Helper
-window.delegate = function(parent, eventType, selector, handler) {
-    parent.addEventListener(eventType, function(event) {
-        const targetElement = event.target.closest(selector);
-        if (targetElement && parent.contains(targetElement)) {
-            handler.call(targetElement, event);
-        }
+      hideLoading();
+      if(typeof showError === 'function'){
+        showError('Error', 'Failed to download file.');
+      } else {
+        alert('Failed to download file.');
+      }
     });
 };
