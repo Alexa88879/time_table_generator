@@ -18,7 +18,7 @@ class FacultyCourse(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    timetable_entries = db.relationship('Timetable', backref='faculty_course', lazy='dynamic')
+    timetable_entries = db.relationship('Timetable', backref='faculty_course', lazy='dynamic', cascade='all, delete-orphan')
     batch = db.relationship('Batch', backref='faculty_courses')
     
     __table_args__ = (

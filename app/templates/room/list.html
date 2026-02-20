@@ -264,21 +264,4 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function confirmDelete(url) {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "This room will be permanently deleted!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url;
-        }
-    });
-}
-</script>
 {% endblock %}

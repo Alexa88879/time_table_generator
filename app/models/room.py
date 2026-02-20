@@ -21,7 +21,7 @@ class Room(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    timetable_entries = db.relationship('Timetable', backref='room', lazy='dynamic')
+    timetable_entries = db.relationship('Timetable', backref='room', lazy='dynamic', cascade='all, delete-orphan')
     
     @property
     def is_lab(self):

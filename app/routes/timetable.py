@@ -165,7 +165,7 @@ def edit(section_id):
     
     # Get all required data
     timeslots = TimeSlot.query.order_by(TimeSlot.day_index, TimeSlot.period).all()
-    rooms = Room.query.filter_by(is_active=True).order_by(Room.name).all()
+    rooms = Room.query.filter_by(is_available=True).order_by(Room.name).all()
     mappings = FacultyCourse.query.filter_by(section_id=section_id).all()
     entries = Timetable.query.filter_by(section_id=section_id).all()
     

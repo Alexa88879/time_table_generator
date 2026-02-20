@@ -75,9 +75,9 @@ def add_mapping():
     courses = Course.query.order_by(Course.semester, Course.code).all()
     
     return render_template('mapping/form.html', 
-                         faculty=faculty, 
+                         faculty_list=faculty, 
                          sections=sections, 
-                         courses=courses,
+                         courses=[c.to_dict() for c in courses],
                          mapping=None,
                          action='add')
 
@@ -111,9 +111,9 @@ def edit_mapping(id):
     courses = Course.query.order_by(Course.semester, Course.code).all()
     
     return render_template('mapping/form.html',
-                         faculty=faculty,
+                         faculty_list=faculty,
                          sections=sections,
-                         courses=courses,
+                         courses=[c.to_dict() for c in courses],
                          mapping=mapping,
                          action='edit')
 

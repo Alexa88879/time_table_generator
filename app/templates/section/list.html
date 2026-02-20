@@ -277,21 +277,5 @@
             showToast('At least one batch is required', 'warning');
         }
     }
-
-    function confirmDelete(url) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "This will delete the section and all related mappings!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = url;
-            }
-        });
-    }
 </script>
 {% endblock %}

@@ -155,10 +155,13 @@ document.addEventListener('DOMContentLoaded', function(){
         if(result.isConfirmed){
           showLoading('Deleting...');
           
+          const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          
           fetch(url, {
             method: 'DELETE',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
             }
           })
           .then(response => response.json())

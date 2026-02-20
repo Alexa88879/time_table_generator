@@ -949,14 +949,24 @@ p, span, div, label, small, h1, h2, h3, h4, h5, h6, li, td, th, a {
   color: #0f172a !important;
 }
 
-/* Badge text should be white on colored background */
+/* Badge text should be white on colored background, but respect subtle variants */
 .badge {
-  color: white !important;
+  color: white;
 }
 
 .badge.bg-light, .badge.text-dark {
   color: #0f172a !important;
 }
+
+/* Fix for subtle badges - they need colored text */
+.badge.bg-primary-subtle { color: var(--primary) !important; }
+.badge.bg-success-subtle { color: var(--success) !important; }
+.badge.bg-info-subtle { color: var(--info) !important; }
+.badge.bg-warning-subtle { color: var(--warning) !important; }
+.badge.bg-danger-subtle { color: var(--danger) !important; }
+.badge.bg-secondary-subtle { color: var(--secondary) !important; }
+.badge.bg-dark-subtle { color: var(--text-primary) !important; }
+.badge.bg-light-subtle { color: var(--text-primary) !important; }
 
 /* Stat cards text */
 .stat-card, .stat-card *, .stat-info, .stat-info * {
@@ -1072,12 +1082,23 @@ p, span, div, label, small, h1, h2, h3, h4, h5, h6, li, td, th, a {
 [data-theme="dark"] span,
 [data-theme="dark"] div,
 [data-theme="dark"] label,
+[data-theme="dark"] small,
+[data-theme="dark"] li,
 [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
 [data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6,
 [data-theme="dark"] td, [data-theme="dark"] th,
 [data-theme="dark"] .card, [data-theme="dark"] .glass-card,
-[data-theme="dark"] .table, [data-theme="dark"] .modal {
+[data-theme="dark"] .table, [data-theme="dark"] .modal,
+[data-theme="dark"] a,
+[data-theme="dark"] .form-control, [data-theme="dark"] .form-select,
+[data-theme="dark"] .detail-row, [data-theme="dark"] .detail-row span,
+[data-theme="dark"] .batch-item, [data-theme="dark"] .batch-item span,
+[data-theme="dark"] .semester-section h5, [data-theme="dark"] .semester-group h5 {
   color: #f8fafc !important;
+}
+
+[data-theme="dark"] a {
+  color: var(--primary-hover) !important;
 }
 
 [data-theme="dark"] .text-muted {

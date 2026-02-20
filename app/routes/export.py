@@ -1,6 +1,6 @@
 """Export routes blueprint - PDF and Excel export"""
 from flask import Blueprint, render_template, request, send_file, jsonify
-from app.models import Section, Timetable, TimeSlot, Faculty, Room, Course
+from app.models import Section, Timetable, TimeSlot, Faculty, Room, Course, FacultyCourse, Batch
 from app import db
 from io import BytesIO
 import json
@@ -17,6 +17,242 @@ def index():
     rooms = Room.query.filter_by(is_available=True).order_by(Room.name).all()
     
     return render_template('export/index.html', sections=sections, faculty=faculty, rooms=rooms)
+
+
+@export_bp.route('/timetable', methods=['GET', 'POST'])
+def export_timetable():
+    """Handle timetable export form submission"""
+    section_id = request.values.get('section_id')
+    export_format = request.values.get('format')
+    
+    if not section_id:
+        return "Section ID is required", 400
+        
+    if export_format == 'pdf':
+        return export_section_pdf(int(section_id))
+    elif export_format == 'excel':
+        return export_section_excel(int(section_id))
+    else:
+        return "Unsupported format", 400
+
+
+@export_bp.route('/faculty/export')
+def export_faculty():
+    """Export faculty list as Excel"""
+    import pandas as pd
+    
+    faculty_list = Faculty.query.filter_by(is_active=True).order_by(Faculty.name).all()
+    
+    data = []
+    for f in faculty_list:
+        data.append({
+            'Faculty ID': f.faculty_id,
+            'Name': f.name,
+            'Email': f.email,
+            'Phone': f.phone,
+            'Department': f.department,
+            'Designation': f.designation,
+            'Max Hours/Day': f.max_hours_per_day,
+            'Max Hours/Week': f.max_hours_per_week
+        })
+    
+    df = pd.DataFrame(data)
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Faculty')
+        
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='faculty_list.xlsx'
+    )
+
+
+@export_bp.route('/rooms/export')
+def export_rooms():
+    """Export rooms list as Excel"""
+    import pandas as pd
+    
+    rooms_list = Room.query.filter_by(is_available=True).order_by(Room.name).all()
+    
+    data = []
+    for r in rooms_list:
+        data.append({
+            'Room ID': r.room_id,
+            'Name': r.name,
+            'Building': r.building,
+            'Floor': r.floor,
+            'Capacity': r.capacity,
+            'Type': r.room_type,
+            'Lab Type': r.lab_type,
+            'Projector': 'Yes' if r.has_projector else 'No',
+            'AC': 'Yes' if r.has_ac else 'No'
+        })
+    
+    df = pd.DataFrame(data)
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Rooms')
+        
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='rooms_list.xlsx'
+    )
+
+
+@export_bp.route('/sections/export')
+def export_sections():
+    """Export sections list as Excel"""
+    import pandas as pd
+    
+    sections_list = Section.query.filter_by(is_active=True).order_by(Section.semester, Section.name).all()
+    
+    data = []
+    for s in sections_list:
+        data.append({
+            'Section ID': s.section_id,
+            'Name': s.name,
+            'Branch': s.branch,
+            'Semester': s.semester,
+            'Strength': s.strength,
+            'Batch Year': s.batch_year,
+            'Academic Year': s.academic_year
+        })
+    
+    df = pd.DataFrame(data)
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Sections')
+        
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='sections_list.xlsx'
+    )
+
+
+@export_bp.route('/mappings/export')
+def export_mappings():
+    """Export faculty-course mappings as Excel"""
+    import pandas as pd
+    
+    mappings = FacultyCourse.query.join(Faculty).join(Course).join(Section).order_by(Section.semester, Section.name, Course.code).all()
+    
+    data = []
+    for m in mappings:
+        batch_name = m.batch.name if m.batch else "All"
+        data.append({
+            'Faculty': m.faculty.name,
+            'Course Code': m.course.code,
+            'Course Name': m.course.name,
+            'Section': f"{m.section.semester}-{m.section.name}",
+            'Session Type': m.session_type_name,
+            'Batch': batch_name,
+            'Hours/Week': m.hours_per_week,
+            'Academic Year': m.academic_year
+        })
+    
+    df = pd.DataFrame(data)
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Mappings')
+        
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='faculty_mappings.xlsx'
+    )
+
+
+@export_bp.route('/all/export')
+def export_all():
+    """Export all master data as Excel with multiple sheets"""
+    import pandas as pd
+    
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        # Faculty
+        faculty_list = Faculty.query.filter_by(is_active=True).order_by(Faculty.name).all()
+        f_data = [{
+            'Faculty ID': f.faculty_id,
+            'Name': f.name,
+            'Email': f.email,
+            'Phone': f.phone,
+            'Department': f.department,
+            'Designation': f.designation,
+            'Max Hours/Day': f.max_hours_per_day,
+            'Max Hours/Week': f.max_hours_per_week
+        } for f in faculty_list]
+        pd.DataFrame(f_data).to_excel(writer, index=False, sheet_name='Faculty')
+        
+        # Rooms
+        rooms_list = Room.query.filter_by(is_available=True).order_by(Room.name).all()
+        r_data = [{
+            'Room ID': r.room_id,
+            'Name': r.name,
+            'Building': r.building,
+            'Floor': r.floor,
+            'Capacity': r.capacity,
+            'Type': r.room_type,
+            'Lab Type': r.lab_type,
+            'Projector': 'Yes' if r.has_projector else 'No',
+            'AC': 'Yes' if r.has_ac else 'No'
+        } for r in rooms_list]
+        pd.DataFrame(r_data).to_excel(writer, index=False, sheet_name='Rooms')
+        
+        # Sections
+        sections_list = Section.query.filter_by(is_active=True).order_by(Section.semester, Section.name).all()
+        s_data = [{
+            'Section ID': s.section_id,
+            'Name': s.name,
+            'Branch': s.branch,
+            'Semester': s.semester,
+            'Strength': s.strength,
+            'Batch Year': s.batch_year,
+            'Academic Year': s.academic_year
+        } for s in sections_list]
+        pd.DataFrame(s_data).to_excel(writer, index=False, sheet_name='Sections')
+        
+        # Mappings
+        mappings = FacultyCourse.query.join(Faculty).join(Course).join(Section).order_by(Section.semester, Section.name, Course.code).all()
+        m_data = [{
+            'Faculty': m.faculty.name,
+            'Course Code': m.course.code,
+            'Course Name': m.course.name,
+            'Section': f"{m.section.semester}-{m.section.name}",
+            'Session Type': m.session_type_name,
+            'Batch': m.batch.name if m.batch else "All",
+            'Hours/Week': m.hours_per_week,
+            'Academic Year': m.academic_year
+        } for m in mappings]
+        pd.DataFrame(m_data).to_excel(writer, index=False, sheet_name='Mappings')
+        
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='master_data_export.xlsx'
+    )
+
 
 
 @export_bp.route('/section/<int:section_id>/pdf')

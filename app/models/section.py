@@ -21,7 +21,7 @@ class Section(db.Model):
     # Relationships
     batches = db.relationship('Batch', backref='section', lazy='dynamic', cascade='all, delete-orphan')
     faculty_mappings = db.relationship('FacultyCourse', backref='section', lazy='dynamic', cascade='all, delete-orphan')
-    timetable_entries = db.relationship('Timetable', backref='section', lazy='dynamic')
+    timetable_entries = db.relationship('Timetable', backref='section', lazy='dynamic', cascade='all, delete-orphan')
     
     @property
     def display_name(self):
