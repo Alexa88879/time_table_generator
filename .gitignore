@@ -2,4 +2,3 @@ __pycache__/
 .venv/
 *.md
 !README.md
-project_report_appscript.js
